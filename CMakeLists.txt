@@ -1,12 +1,16 @@
 cmake_minimum_required(VERSION 3.7)
 project(CRawlerPlusPlus_git)
+set(CMAKE_CXX_STANDARD 14)
+set(SOURCE_FILES test/test_network.cpp)
+add_executable(CRawlerPlusPlus ${SOURCE_FILES})
 
 find_package(Boost 1.63.0 COMPONENTS system filesystem REQUIRED)
+find_package(curl 7.53.1 COMPONENTS system filesystem REQUIRED)
+add_subdirectory(cpr)
+
 include_directories(${Boost_INCLUDE_DIRS})
-
-set(CMAKE_CXX_STANDARD 14)
-
-set(SOURCE_FILES main.cpp)
-
-add_executable(CRawlerPlusPlus ${SOURCE_FILES})
+include_directories(${CPR_INCLUDE_DIRS})
+include_directories(${curl_INCLUDE_DIRS})
+target_link_libraries(CRawlerPlusPlus ${CPR_LIBRARIES})
 target_link_libraries(CRawlerPlusPlus ${Boost_LIBRARIES})
+target_link_libraries(CRawlerPlusPlus ${curl_LIBRARIES})
