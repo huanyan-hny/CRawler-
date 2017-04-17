@@ -3,25 +3,83 @@
 #include <vector>
 #include <unordered_map>
 #include <assert.h>
+
 using namespace std;
 
 namespace Crawler
 {
+	class File
+	{
+	public:
+		string extension;
+		vector<char> data;
+	};
+
 	class Item
 	{
 	public:
-		unordered_map<string, string> data;
+		string name;
+		string type;
+		unordered_map<string, int> fields_idx;
+		unordered_map<string, File> data;
+		vector<pair<string, string>> fields;
 		string& operator [] (string key)
 		{
-			if (data.count(key) != 0)
-				return data[key];
-			assert(false && "item key not found");
+			if (fields_idx.count(key) == 0)
+			{
+				fields_idx[key] = fields.size();
+				fields.push_back(pair<string, string>(key, ""));
+				return fields[fields.size() - 1].second;
+			}
+			else
+				return fields[fields_idx[key]].second;
 		}
-	protected:
-		void define_field(string field)
+		string to_string()
 		{
-			if (data.count(field) == 0)
-				data[field] = "";
+			string s;
+			std::for_each(fields.begin(), fields.end(), [&](pair<string, string>& item) {
+				s = s + item.first + ":" + item.second + "\n";
+			});
+			return s;
 		}
+		string to_csv()
+		{
+			string s;
+			std::for_each(fields.begin(), fields.end(), [&](pair<string, string>& item) {
+				s = s + item.second + "," ;
+			});
+			s.resize(s.size() - 1);
+			return s;
+		}
+		string to_csv_title()
+		{
+			string s;
+			std::for_each(fields.begin(), fields.end(), [&](pair<string, string>& item) {
+				s = s + item.first + ",";
+			});
+			s.resize(s.size() - 1);
+			return s;
+		}
+
+
+
+		void feed_bytes_field(string field, const vector<char>& bytes, string extension = "txt")
+		{
+			File f;
+			f.extension = extension;
+			f.data = bytes;
+			data[field] = std::move(f);
+		}
+
+		void feed_bytes_field(string field, vector<char>& bytes, string extension = "txt")
+		{
+			File f;
+			f.extension = extension;
+			f.data = std::move(bytes);
+			data[field] = std::move(f);
+		}
+
+	protected:
+
 	};
 }

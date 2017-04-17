@@ -15,7 +15,26 @@
 using namespace std;
 using boost::asio::ip::tcp;
 
+
 namespace Crawler
+{
+	class Request
+	{
+	public:
+		string payload;
+	};
+	class Response
+	{
+	public:
+		string payload;
+	};
+
+}
+
+
+//TODO: replace the current mocking req, res with the acutal ones
+
+namespace NOT_Crawler
 {
 	typedef string request_payload;
 	typedef string response_payload;
