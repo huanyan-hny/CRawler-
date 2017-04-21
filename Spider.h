@@ -23,14 +23,14 @@ namespace Crawler
 		virtual vector<shared_ptr<Request>> start_requests()
 		{
 			vector<shared_ptr<Request>> v;
-			v.push_back(make_shared<Request>(Request()));
+			v.push_back(make_shared<Request>(Request("get","www.imdb.com/title/tt0796366/")));
 			return v;
 		}
 		virtual Parsed_Result parse(shared_ptr<Response> res)
 		{
 			Parsed_Result ret;
-			ret.next_reqs.push_back(make_shared<Request>(Request())) ;
-			ret.next_reqs.push_back(make_shared<Request>(Request()));
+			ret.next_reqs.push_back(make_shared<Request>(Request("get","www.imdb.com/title/tt0796366/"))) ;
+			ret.next_reqs.push_back(make_shared<Request>(Request("get","www.imdb.com/title/tt0796366/")));
 
 			Item i;
 			i["foo"] = "foo";

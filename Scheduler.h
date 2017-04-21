@@ -80,6 +80,14 @@ namespace Crawler
 		{
 			q_lk.lock();
 			current_q = std::move(next_q);
+/*
+			current_q =  queue<shared_ptr<Request>>();
+			while(!next_q.empty())
+			{
+				current_q.push(next_q.front());
+				next_q.pop();
+			}
+			*/
 			next_q = queue<shared_ptr<Request>>();
 			now_layer++;
 			q_lk.unlock();
@@ -88,8 +96,8 @@ namespace Crawler
 
 		bool finished()
 		{
-			cout << now_layer << endl;
-			cout << max_layer << endl;
+//			cout << now_layer << endl;
+//			cout << max_layer << endl;
 			if (now_layer > max_layer) return true;
 			return false;
 		}

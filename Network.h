@@ -3,7 +3,6 @@
 #include <vector>
 #include <unordered_map>
 #include <assert.h>
-#include <cpr/cpr.h>
 #include <memory>
 #include <boost/asio.hpp>
 #include <iostream>
@@ -136,7 +135,10 @@ namespace Crawler
 		}
 		string render_request(){
 			string request_str;
-            request_str = get_request_method() + " " +  resource + " HTTP/1.0\r\n";
+            request_str = get_request_method();
+            request_str += " " ;
+            request_str += resource ;
+            request_str += " HTTP/1.0\r\n";
             request_str += "Host: " + url + "\r\n";
             request_str += "Accept: */*\r\n";
             request_str += "Connection: close\r\n\r\n";

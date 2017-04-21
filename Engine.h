@@ -31,7 +31,6 @@ namespace Crawler
 			while (!scheduler->finished())
 			{
 				if (active_threads.load()> max_threads) {
-					cout << active_threads.load();
 					continue;
 
 				}
@@ -46,18 +45,18 @@ namespace Crawler
 					continue;
 				}
 				atomic_fetch_add(&active_threads, 1);
-				store_future( std::async(std::launch::async, [&]()
+				store_future( std::async(std::launch::async, [&](shared_ptr<Request> req)
 				{
 					shared_ptr<Response> res = Downloader::sync_download(req);
-					std::async(std::launch::async, [&]() {
+					std::async(std::launch::async, [&](shared_ptr<Response> res) {
 						auto result = spider->parse(res);
 						vector<shared_ptr<Item>> items = result.items;
 						vector<shared_ptr<Request>> reqs = result.next_reqs;
 						scheduler->add_requests(reqs);
-						item_pipeline->handle_items(items);
+//						item_pipeline->handle_items(items);
 						atomic_fetch_add(&active_threads, -1);
-					});
-				}));
+					},res);
+				},req));
 
 
 			}
@@ -68,7 +67,7 @@ namespace Crawler
 		unique_ptr<Scheduler> scheduler;
 		unique_ptr<ItemPipeline> item_pipeline;
 
-		std::atomic_int active_threads;
+		std::atomic_int active_threads{0};
 		mutex future_lk;
 		vector<future<void>> pending_futures;
 
@@ -77,8 +76,8 @@ namespace Crawler
 		inline void store_future(future<void>&& f)
 		{
 			future_lk.lock();
-			if (pending_futures.size() > 1000)
-				pending_futures.clear();
+//			if (pending_futures.size() > 1000)
+//				pending_futures.clear();
 			pending_futures.push_back(std::move(f));
 			future_lk.unlock();
 
