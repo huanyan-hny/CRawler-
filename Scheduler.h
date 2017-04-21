@@ -88,6 +88,8 @@ namespace Crawler
 
 		bool finished()
 		{
+			cout << now_layer << endl;
+			cout << max_layer << endl;
 			if (now_layer > max_layer) return true;
 			return false;
 		}

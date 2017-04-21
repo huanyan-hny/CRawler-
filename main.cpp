@@ -7,7 +7,7 @@
 #include "Engine.h"
 using namespace std;
 
-void main()
+int main()
 {
 	Crawler::Engine e(3,5);
 	e.start();
@@ -15,5 +15,4 @@ void main()
 	Crawler::ItemPipeline* a = new Crawler::ItemPipeline();
 	a->process_item(shared_ptr<Crawler::Item>());
 	*/
-	system("pause");
 }

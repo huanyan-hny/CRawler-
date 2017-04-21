@@ -30,17 +30,21 @@ namespace Crawler
 			
 			while (!scheduler->finished())
 			{
-				if (active_threads.load()> max_threads) continue;
+				if (active_threads.load()> max_threads) {
+					cout << active_threads.load();
+					continue;
+
+				}
 				if (scheduler->is_current_empty())
 				{
 					if (active_threads.load() == 0)
 						scheduler->next_layer();
 					continue;
 				}
-
 				shared_ptr<Request> req = scheduler->get_request();
-				if (req == nullptr)
+				if (req == nullptr) {
 					continue;
+				}
 				atomic_fetch_add(&active_threads, 1);
 				store_future( std::async(std::launch::async, [&]()
 				{
@@ -70,7 +74,7 @@ namespace Crawler
 
 		int max_threads;
 		
-		inline void store_future(future<void>& f)
+		inline void store_future(future<void>&& f)
 		{
 			future_lk.lock();
 			if (pending_futures.size() > 1000)
