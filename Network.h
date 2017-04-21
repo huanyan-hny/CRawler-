@@ -10,13 +10,15 @@
 #include <istream>
 #include <ostream>
 #include <boost/bind.hpp>
+#include <algorithm>
+#include "Util.h"
 
 
 using namespace std;
 using boost::asio::ip::tcp;
 
 
-namespace Crawler
+namespace Not_Crawler
 {
 	class Request
 	{
@@ -32,22 +34,52 @@ namespace Crawler
 }
 
 
-//TODO: replace the current mocking req, res with the acutal ones
+//TODO: replace the current mocking req, res with the actual ones
 
-namespace NOT_Crawler
+namespace Crawler
 {
 	typedef string request_payload;
 	typedef string response_payload;
+    typedef std::unordered_map<std::string,std::string> Header;
+    typedef std::unordered_map<std::string,std::string> CookieJar;
 
 	enum class Request_method {
 //		GET, HEAD, POST, PUT, DELETE, CONNECT, OPTIONS,TRACE
 		GET, POST
 	};
 
+    void merge_cookie(Crawler::CookieJar& c1, Crawler::CookieJar c2) {
+        c2.insert(c1.begin(),c1.end());
+        c1 = c2;
+    }
+
     std::string make_string(boost::asio::streambuf& sb)
     {
         return {buffers_begin(sb.data()),
                 buffers_end(sb.data())};
+    };
+
+    class Authentication
+    {
+    private:
+        string username;
+        string password;
+    public:
+        Authentication(): username(""), password("") {}
+        Authentication(string _username,
+                       string _password):
+                username(_username), password(_password){}
+
+        bool operator==(const Authentication& b) {
+            return username == b.username && password == b.password;
+        }
+
+        bool operator!=(const Authentication& b) {
+            return !(*this == b);
+        }
+
+
+
     };
 
 	class Response
@@ -61,6 +93,39 @@ namespace NOT_Crawler
 	class Request
 	{
 	private:
+        Request_method request_method;
+        string url;
+        string resource;
+        Header header;
+        Authentication auth;
+        CookieJar cookiejar = {};
+        bool trust_env = true;
+
+        void set_option(string _request_method) {
+            this->request_method = str(_request_method);
+        }
+
+        void set_option(Header header) {
+            this->header = header;
+        }
+
+        void set_option(Authentication auth){
+            this->auth = auth;
+        }
+
+        void set_option(bool trust_env) {
+            this->trust_env = trust_env;
+        }
+
+        Request_method str(string method_str) {
+            string str_to_match = Crawler_Util::to_lower(method_str);
+            if (str_to_match == "get")
+                return Request_method::GET;
+            else if (str_to_match == "post")
+                return Request_method::POST;
+            else
+                return Request_method::GET;
+        }
 		string get_request_method(){
 			string method_str;
 			switch (request_method) {
@@ -78,10 +143,23 @@ namespace NOT_Crawler
 			return request_str;
 		}
 	public:
-		Request_method request_method;
-		string url;
-        string resource;
-		std::unique_ptr<Response> get() {
+
+        Request(string _request_method, string _url):request_method(str(_request_method)){
+            int found = _url.find("/");
+            url = _url.substr(0,found);
+            resource = _url.substr(found);
+            cout << url << " " << resource << endl;
+        }
+
+        CookieJar& get_cookie_jar() {
+            return cookiejar;
+        }
+
+        void set_cookie_jar(const CookieJar& c) {
+            cookiejar = c;
+        }
+
+		std::shared_ptr<Response> get() {
 			string request_str = this->render_request();
 			try {
 				boost::asio::io_service io_service;
@@ -108,7 +186,7 @@ namespace NOT_Crawler
 				// Read the response status line. The response streambuf will automatically
 				// grow to accommodate the entire line. The growth may be limited by passing
 				// a maximum size to the streambuf constructor.
-                std::unique_ptr<Response> r = std::make_unique<Response>();
+                std::shared_ptr<Response> r = std::make_shared<Response>();
 
 				boost::asio::streambuf response;
 				boost::asio::read_until(socket, response, "\r\n");
@@ -161,5 +239,31 @@ namespace NOT_Crawler
 		}
 	};
 
+
+
+    class Session
+    {
+    private:
+        Header header;
+        Authentication auth;
+        CookieJar const cookiejar;
+        bool trust_env = true;
+
+    public:
+        Session(){}
+        template <typename... Tail>
+        shared_ptr<Response> request(string method, string url, Tail... tail)
+        {
+            Request r {method, url};
+            Crawler_Util::set_option(r, tail...);
+            merge_cookie(r.get_cookie_jar(), cookiejar);
+            return r.get();
+        }
+        template <typename... Tail>
+        shared_ptr<Response> get(string url, Tail... tail)
+        {
+            return request("GET", url,  tail...);
+        }
+    };
 
 }
