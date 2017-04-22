@@ -152,7 +152,10 @@ namespace Crawler
             resource = _url.substr(found);
             cout << url << " " << resource << endl;
         }
-
+        const string get_url()
+        {
+            return url + "/" + resource;
+        }
         CookieJar& get_cookie_jar() {
             return cookiejar;
         }

@@ -1,6 +1,6 @@
 #pragma once
 //http://stackoverflow.com/questions/15752659/thread-pooling-in-c11
-#include "Scheduler.h"
+#include "Generic_Scheduler.h"
 #include "Downloader.h"
 #include "Spider.h"
 #include "ItemPipeline.h"
@@ -14,6 +14,7 @@ using namespace std;
 
 namespace Crawler
 {
+    template <class T>
 	class Engine
 	{	
 	public:
@@ -21,25 +22,19 @@ namespace Crawler
 		{
 			spider = make_unique<Spider>();
 			item_pipeline = make_unique<ItemPipeline>();
-			scheduler = make_unique<Scheduler>(_max_layers);
-			scheduler->add_requests(spider->start_requests());
+			scheduler = make_unique<Generic_Scheduler>(_max_layers);
+			scheduler->start_requests(spider->start_requests());
 			max_threads = _max_threads;
 		}
 		void start()
 		{
 			
-			while (!scheduler->finished())
+			while (!scheduler->is_empty() || active_threads.load() > 0)
 			{
 				if (active_threads.load()> max_threads) {
 					continue;
+				}
 
-				}
-				if (scheduler->is_current_empty())
-				{
-					if (active_threads.load() == 0)
-						scheduler->next_layer();
-					continue;
-				}
 				shared_ptr<Request> req = scheduler->get_request();
 				if (req == nullptr) {
 					continue;
@@ -47,15 +42,16 @@ namespace Crawler
 				atomic_fetch_add(&active_threads, 1);
 				store_future( std::async(std::launch::async, [&](shared_ptr<Request> req)
 				{
-					shared_ptr<Response> res = Downloader::sync_download(req);
-					std::async(std::launch::async, [&](shared_ptr<Response> res) {
+
+                    shared_ptr<Response> res = Downloader::sync_download(req);
+					std::async(std::launch::async, [&](shared_ptr<Request> old_req, shared_ptr<Response> res) {
 						auto result = spider->parse(res);
 						vector<shared_ptr<Item>> items = result.items;
 						vector<shared_ptr<Request>> reqs = result.next_reqs;
-						scheduler->add_requests(reqs);
-//						item_pipeline->handle_items(items);
+                        scheduler->add_requests(reqs,old_req);
+						item_pipeline->handle_items(items);
 						atomic_fetch_add(&active_threads, -1);
-					},res);
+					},req,res);
 				},req));
 
 
@@ -64,7 +60,7 @@ namespace Crawler
 
 		private:
 		unique_ptr<Spider> spider;
-		unique_ptr<Scheduler> scheduler;
+		unique_ptr<Generic_Scheduler> scheduler;
 		unique_ptr<ItemPipeline> item_pipeline;
 
 		std::atomic_int active_threads{0};
@@ -76,8 +72,8 @@ namespace Crawler
 		inline void store_future(future<void>&& f)
 		{
 			future_lk.lock();
-//			if (pending_futures.size() > 1000)
-//				pending_futures.clear();
+			if (pending_futures.size() > 1000)
+				pending_futures.clear();
 			pending_futures.push_back(std::move(f));
 			future_lk.unlock();
 

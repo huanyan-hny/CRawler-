@@ -9,10 +9,13 @@ using namespace std;
 
 int main()
 {
-	Crawler::Engine e(3,5);
-	e.start();
-	/*
-	Crawler::ItemPipeline* a = new Crawler::ItemPipeline();
-	a->process_item(shared_ptr<Crawler::Item>());
-	*/
+//	Crawler::Engine<Crawler::Generic_Scheduler> e (1,5);
+//	e.start();
+// code above is working, regardless the network issue.
+    auto a = Crawler::Downloader::sync_download(make_shared<Crawler::Request>(Crawler::Request("get","www.imdb.com/title/tt0796366/")));
+    ofstream ofs;
+    ofs.open("output/test.txt", std::ofstream::out);
+    ofs << a->asio_response;
+    ofs.close();
+
 }

@@ -33,7 +33,7 @@ namespace Crawler
 			ret.next_reqs.push_back(make_shared<Request>(Request("get","www.imdb.com/title/tt0796366/")));
 
 			Item i;
-			i["foo"] = "foo";
+			i["response"] = res->asio_response;
 			i["bar"] = "bar";
 			i["foobar"] = "barfoo";
 	

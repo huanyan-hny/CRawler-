@@ -40,7 +40,7 @@ namespace Crawler
 		void simple_write(shared_ptr<Item> item)
 		{
 			boost::filesystem::path tmp = boost::filesystem::unique_path();
-			string filename = tmp.string() + ".txt";
+			string filename =  tmp.string() + ".txt";
 			cout << "writing on " << filename << endl;
 			ofstream ofs;
 			ofs.open(filename, std::ofstream::out);
@@ -53,7 +53,7 @@ namespace Crawler
 			for (pair<string, File> file_item : item->data)
 			{
 				boost::filesystem::path tmp = boost::filesystem::unique_path();
-				string filename = tmp.string() + file_item.second.extension;
+				string filename = "./output/" + tmp.string() + file_item.second.extension;
 				ofstream ofs;
 				ofs.open(filename, std::ofstream::out);
 				ofs.write(file_item.second.data.data(), file_item.second.data.size());
