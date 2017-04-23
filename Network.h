@@ -3,6 +3,7 @@
 #include <vector>
 #include <unordered_map>
 #include <assert.h>
+#include <cpr/cpr.h>
 #include <memory>
 #include <boost/asio.hpp>
 #include <iostream>
@@ -128,20 +129,20 @@ namespace Crawler
 		string get_request_method(){
 			string method_str;
 			switch (request_method) {
-                case Request_method::GET: method_str = "GET";
+                case Request_method::GET:
+                    method_str = "GET";
+                    break;
 				case Request_method::POST: method_str = "POST";
 			}
 			return method_str;
 		}
 		string render_request(){
 			string request_str;
-            request_str = get_request_method();
-            request_str += " " ;
-            request_str += resource ;
-            request_str += " HTTP/1.0\r\n";
+            request_str = get_request_method() + " " +  resource + " HTTP/1.0\r\n";
             request_str += "Host: " + url + "\r\n";
             request_str += "Accept: */*\r\n";
             request_str += "Connection: close\r\n\r\n";
+            cout << request_str;
 			return request_str;
 		}
 	public:
@@ -152,14 +153,14 @@ namespace Crawler
             resource = _url.substr(found);
             cout << url << " " << resource << endl;
         }
-        const string get_url()
-        {
-            return url + "/" + resource;
-        }
+
         CookieJar& get_cookie_jar() {
             return cookiejar;
         }
 
+        string get_url(){
+            return url + "/" + resource;
+        }
         void set_cookie_jar(const CookieJar& c) {
             cookiejar = c;
         }
@@ -224,14 +225,15 @@ namespace Crawler
 					r->header += header + "\n";
 
 				// Write whatever content we already have to output.
-				if (response.size() > 0)
-					r->asio_response += make_string(response);
+//				if (response.size() > 0)
+//					r->asio_response += make_string(response);
 
 				// Read until EOF, writing data to output as we go.
 				boost::system::error_code error;
 				while (boost::asio::read(socket, response,
-										 boost::asio::transfer_at_least(1), error))
-					r->asio_response += make_string(response);
+										 boost::asio::transfer_at_least(1), error)){}
+
+                r->asio_response += make_string(response);
 				if (error != boost::asio::error::eof)
 					throw boost::system::system_error(error);
                 return r;
