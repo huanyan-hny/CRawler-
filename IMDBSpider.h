@@ -33,7 +33,7 @@ namespace Crawler
                 cout<<"movie_poster_link " << movie_poster_link<<endl;
                 if (movie_name != "") {
                     i.type = "movie";
-                    i["movie_name"] = Parser::getAttribute(movie_name, "content");
+                    i["movie_name"] = movie_name;
                     i["movie_url"] = req->get_url();
                     ret.items.push_back(make_shared<Item>(i));
                     for (auto &url: related_movie_urls) {
