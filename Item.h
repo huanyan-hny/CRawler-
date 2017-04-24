@@ -63,7 +63,7 @@ namespace Crawler
 
 
 
-		void feed_bytes_field(string field, const vector<char>& bytes, string extension = "txt")
+		void add_file(string field, const vector<char>& bytes, string extension = "txt")
 		{
 			File f;
 			f.extension = extension;
@@ -71,7 +71,7 @@ namespace Crawler
 			data[field] = std::move(f);
 		}
 
-		void feed_bytes_field(string field, vector<char>& bytes, string extension = "txt")
+		void feed_file(string field, vector<char>& bytes, string extension = "txt")
 		{
 			File f;
 			f.extension = extension;

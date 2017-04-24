@@ -53,14 +53,19 @@ namespace Crawler
             q_lk.lock();
             auto new_url = new_req->get_url();
             auto old_url = old_req->get_url();
-            if (hash_table[old_url] < max_layer && (hash_table.count(new_url)==0 || true) ) {
-                hash_table[new_url] = hash_table[old_url]+1;
-                if (hash_table[new_url] > now_layer)
-                {
-                    cout<<"now layer "<< hash_table[new_url] <<endl;
-                    now_layer = hash_table[new_url];
+            if (hash_table.count(new_url)==0) {
+                if (hash_table[old_url] < max_layer  && !new_req->ignore_iterating_limit) {
+                    hash_table[new_url] = hash_table[old_url] + 1;
+                    if (hash_table[new_url] > now_layer) {
+                        cout << "iteration: " << hash_table[new_url] << endl;
+                        now_layer = hash_table[new_url];
+                    }
+                    requests_pool.push(new_req);
                 }
-                requests_pool.push(new_req);
+                else if (hash_table[old_url] <= max_layer && new_req->ignore_iterating_limit ) {
+                    hash_table[new_url] = hash_table[old_url];
+                    requests_pool.push(new_req);
+                }
             }
             q_lk.unlock();
         }
@@ -70,15 +75,18 @@ namespace Crawler
             auto old_url = old_req->get_url();
             for (auto &new_req : new_reqs) {
                 auto new_url = new_req->get_url();
-
-                if (hash_table[old_url] < max_layer && (hash_table.count(new_url)==0 || true) ) {
-                    hash_table[new_url] = hash_table[old_url]+1;
-                    if (hash_table[new_url] > now_layer)
-                    {
-                        cout<<"now layer "<< hash_table[new_url] <<endl;
-                        now_layer = hash_table[new_url];
+                if (hash_table.count(new_url)==0) {
+                    if (hash_table[old_url] < max_layer && !new_req->ignore_iterating_limit) {
+                        hash_table[new_url] = hash_table[old_url] + 1;
+                        if (hash_table[new_url] > now_layer) {
+                            cout << "iteration: " << hash_table[new_url] << endl;
+                            now_layer = hash_table[new_url];
+                        }
+                        requests_pool.push(new_req);
+                    } else if (hash_table[old_url] <= max_layer && new_req->ignore_iterating_limit) {
+                        hash_table[new_url] = hash_table[old_url];
+                        requests_pool.push(new_req);
                     }
-                    requests_pool.push(new_req);
                 }
             }
             q_lk.unlock();
@@ -113,6 +121,12 @@ namespace Crawler
         {
             if (now_layer > max_layer && requests_pool.empty()) return true;
             return false;
+        }
+
+        void set_max_layer(int l)
+        {
+            if (l > 0 )
+                max_layer = l;
         }
     private:
         int max_layer;

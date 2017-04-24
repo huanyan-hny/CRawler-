@@ -101,6 +101,11 @@ namespace Crawler
 			if (now_layer > max_layer) return true;
 			return false;
 		}
+		void set_max_layer(int l)
+		{
+			if (l>0)
+				max_layer = l;
+		}
 	private:
 		int max_layer;
 		int now_layer;

@@ -3,7 +3,6 @@
 #include <vector>
 #include <unordered_map>
 #include <assert.h>
-#include <cpr/cpr.h>
 #include <memory>
 #include <boost/asio.hpp>
 #include <iostream>
@@ -11,6 +10,7 @@
 #include <ostream>
 #include <boost/bind.hpp>
 #include <algorithm>
+#include <cpr/cpr.h>
 #include "Util.h"
 
 using namespace std;
@@ -28,6 +28,10 @@ namespace Crawler
 		GET, POST
 	};
 
+    enum class Request_content {
+        FILE,
+        STRING
+    };
 
 	void extract_cookie_to_cookiejar(CookieJar& ckj, string header) {
 		vector<string> headerLines = Crawler_Util::split(header, '\n');
@@ -109,9 +113,11 @@ namespace Crawler
 		Request_method request_method;
 		string url;
 		string resource;
+        unordered_map<string,string> bundle;
 		Header header;
 		Authentication auth;
 		bool isFile;
+        bool ignore_iterating_limit;
 		CookieJar cookiejar = {};
 		bool trust_env = true;
 		string tag;
@@ -124,6 +130,13 @@ namespace Crawler
 			else
 				return Request_method::GET;
 		}
+        Request& put_string(string key,string value) {
+            bundle[key] = value;
+            return *this;
+        }
+        Request& set_ignore_iterating_limit(bool value) {
+            ignore_iterating_limit = value;
+        }
 		string get_request_method(){
 			string method_str;
 			switch (request_method) {
@@ -152,12 +165,18 @@ namespace Crawler
 			return request_str;
 		}
 
-        Request(string _request_method, string _url, bool _isFile): request_method(str(_request_method)),
-																	isFile(_isFile) {
+        Request(string _request_method, string _url, Request_content content, string _tag = ""): request_method(str(_request_method))
+        {
+            if (content == Request_content::FILE)
+                isFile = true;
+            else
+                isFile = false;
+            tag = _tag;
             int found = _url.find("/");
             url = _url.substr(0,found);
             resource = _url.substr(found);
-            cout << url << " " << resource << endl;
+            ignore_iterating_limit = false;
+//            cout << url + resource << endl;
         }
 
         CookieJar& get_cookie_jar() {

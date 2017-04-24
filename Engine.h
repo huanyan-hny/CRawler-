@@ -4,6 +4,8 @@
 #include "Downloader.h"
 #include "Spider.h"
 #include "ItemPipeline.h"
+#include "IMDBSpider.h"
+#include "IMDBItemPipeline.h"
 #include <iostream>
 #include <memory>
 #include <thread>
@@ -18,17 +20,25 @@ namespace Crawler
 	class Engine
 	{	
 	public:
-		Engine(int _max_threads, int _max_layers) 
-		{
-			spider = make_unique<Spider>();
-			item_pipeline = make_unique<ItemPipeline>();
-			scheduler = make_unique<Generic_Scheduler>(_max_layers);
-			scheduler->start_requests(spider->start_requests());
-			max_threads = _max_threads;
-		}
+		Engine(shared_ptr<Spider> _spider, shared_ptr<ItemPipeline> _item_pipeline ) {
+            max_threads = 1;
+            spider = _spider;
+            item_pipeline = _item_pipeline;
+            scheduler = make_unique<Generic_Scheduler>(INT_MAX);
+            scheduler->start_requests(spider->start_requests());
+        }
+        void set_max_threads(int t)
+        {
+            if (t>0)
+                max_threads = t;
+        }
+        void set_maxium_layer(int l)
+        {
+            scheduler->set_max_layer(l);
+        }
 		void start()
 		{
-			
+            item_pipeline->open_spider(spider);
 			while (!scheduler->is_empty() || active_threads.load() > 0)
 			{
 				if (active_threads.load()> max_threads) {
@@ -43,9 +53,9 @@ namespace Crawler
 				store_future( std::async(std::launch::async, [&](shared_ptr<Request> req)
 				{
 
-                    shared_ptr<Response> res = Downloader::sync_download(req);
+                    shared_ptr<Response> res = Downloader::Curl_Downloader::get(*req);
 					std::async(std::launch::async, [&](shared_ptr<Request> old_req, shared_ptr<Response> res) {
-						auto result = spider->parse(res);
+						auto result = spider->parse(old_req,res);
 						vector<shared_ptr<Item>> items = result.items;
 						vector<shared_ptr<Request>> reqs = result.next_reqs;
                         scheduler->add_requests(reqs,old_req);
@@ -56,12 +66,23 @@ namespace Crawler
 
 
 			}
-		}
+            item_pipeline->close_spider(spider);
 
+        }
+
+        void start_async(std::function<void(void)> callback)
+        {
+            thread t([&](){
+               start();
+               callback();
+            });
+            t.detach();
+
+        }
 		private:
-		unique_ptr<Spider> spider;
+		shared_ptr<Spider> spider;
 		unique_ptr<Generic_Scheduler> scheduler;
-		unique_ptr<ItemPipeline> item_pipeline;
+        shared_ptr<ItemPipeline> item_pipeline;
 
 		std::atomic_int active_threads{0};
 		mutex future_lk;
