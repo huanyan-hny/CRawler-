@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.7)
 project(CRawlerPlusPlus_git)
 set(CMAKE_CXX_STANDARD 14)
 set(SOURCE_FILES test/test_network.cpp)
+#set(SOURCE_FILES main.cpp)
 add_executable(CRawlerPlusPlus ${SOURCE_FILES})
 
 find_package(Boost 1.63.0 COMPONENTS system filesystem REQUIRED)
