@@ -149,8 +149,9 @@ namespace Crawler
             bundle[key] = value;
             return *this;
         }
-        void set_ignore_iterating_limit(bool value) {
+        Request& ignore_iteration_limit(bool value) {
             ignore_iterating_limit = value;
+            return *this;
         }
 		string get_request_method(){
 			string method_str;

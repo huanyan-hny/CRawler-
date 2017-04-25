@@ -43,7 +43,7 @@ namespace Crawler
                                         put_string("type","link")));
                         ret.next_reqs.push_back(make_shared<Request>(
                                 Request("get", movie_poster_link, Request_content::FILE).
-                                put_string("type","poster").put_string("movie_name",movie_name).set_ignore_iterating_limit(true)));
+                                put_string("type","poster").put_string("movie_name",movie_name).ignore_iteration_limit(true)));
 
 //                        cout << url_link << endl;
                     }

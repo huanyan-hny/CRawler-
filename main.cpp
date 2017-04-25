@@ -14,15 +14,28 @@
 using namespace std;
 
 
+void test_curl_download_https(){
+    using namespace Crawler;
+    Request request("get","https://images-na.ssl-images-amazon.com/images/M/MV5BMjE5NDQ5OTE4Ml5BMl5BanBnXkFtZTcwOTE3NDIzMw@@._V1_SY1000_CR0,0,674,1000_AL_.jpg", Request_content::FILE,"");
+    std::shared_ptr<Response> r_ptr = Downloader::Curl_Downloader::get(request);
+    ofstream fout;
+    fout.open("star_trek.jpg",ios::binary | ios::out);
+    fout.write((char *)&(r_ptr->content[0]),r_ptr->content.size());
+    fout.close();
+
+}
+
 int main()
 {
-
     shared_ptr<Crawler::IMDBSpider> spider = make_shared<Crawler::IMDBSpider>();
     shared_ptr<Crawler::IMDBItemPipeline> pipeline = make_shared<Crawler::IMDBItemPipeline>();
 	Crawler::Engine<Crawler::Generic_Scheduler> e(spider,pipeline);
     e.set_max_threads(5);
     e.set_maxium_layer(2);
     e.start();
+    return 0;
+
+
 /*
     Request request("get","www.stroustrup.com/Bjarne.jpg", true);
     std::shared_ptr<Response> r_ptr = Downloader::Curl_Downloader::get(request);

@@ -117,7 +117,7 @@ namespace Crawler
                         curl_easy_setopt(image, CURLOPT_URL, req.get_url().c_str());
                         curl_easy_setopt(image, CURLOPT_WRITEFUNCTION, Crawler_Util::write_to_vec);
                         curl_easy_setopt(image, CURLOPT_WRITEDATA, &vb);
-
+                        curl_easy_setopt(image, CURLOPT_SSL_VERIFYPEER, 0L);
                         // Grab image
                         imgresult = curl_easy_perform(image);
                         if( imgresult ){
