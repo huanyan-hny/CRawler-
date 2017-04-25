@@ -133,8 +133,16 @@ namespace Crawler
                 }
 
                 else {
-
-                    auto r = cpr::Get(cpr::Url{req.url + req.resource});
+                    cpr::Response r;
+                    if (req.auth.get_username() != ""){
+                        r = cpr::Get(cpr::Url{req.url + req.resource}, cpr::Authentication {req.auth.get_username(),req.auth.get_password()});
+                        if (r.status_code == 401) // Try sending as both parameters and authentication
+                            r = cpr::Get(cpr::Url{req.url + req.resource}, cpr::Parameters {{req.auth.get_username(),req.auth.get_password()}});
+                            if (r.status_code == 401)
+                                cout << "ERROR: Tried sending authentication both as authentication and parameters, but failed!";
+                    }
+                    else
+                        r = cpr::Get(cpr::Url{req.url + req.resource});
                     res->header = Crawler_Util::cpr_header_to_string(r.header);
                     res->status_code = r.status_code;
                     res->asio_response = r.text;
@@ -158,7 +166,7 @@ namespace Crawler
         template <typename... Tail>
         shared_ptr<Response> request(string method, string url, bool isFile, Tail... tail)
         {
-            Request r {method, url, isFile};
+            Request r {method, url, Crawler::Request_content::STRING,""};
             Crawler_Util::set_option(r, tail...);
             merge_cookie(r.get_cookie_jar(), cookiejar);
             std::shared_ptr<Response> res = Crawler::Downloader::Boostasio_Downloader::get(r);

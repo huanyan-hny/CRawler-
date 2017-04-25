@@ -27,7 +27,7 @@ namespace Crawler_Util{
 
     template <typename C, typename T>
     void set_option(C& c, T&& t) {
-        c.SetOption(FWD(t));
+        c.set_option(FWD(t));
     }
 
     template <typename C, typename T, typename... Ts>

@@ -67,6 +67,20 @@ namespace Crawler
                        string _password):
                 username(_username), password(_password){}
 
+		string get_username() {
+			return username;
+		}
+
+		string get_password() {
+			return password;
+		}
+
+		void set_username(string _username) {
+			username = _username;
+		}
+		void set_password(string _password) {
+			password = _password;
+		}
         bool operator==(const Authentication& b) {
             return username == b.username && password == b.password;
         }
@@ -89,27 +103,28 @@ namespace Crawler
 		vector<char> content;
 	};
 
+
 	class Request
 	{
 	private:
 
-        void set_option(string _request_method) {
-            this->request_method = str(_request_method);
-        }
-
-        void set_option(Header header) {
-            this->header = header;
-        }
-
-        void set_option(Authentication auth){
-            this->auth = auth;
-        }
-
-        void set_option(bool trust_env) {
-            this->trust_env = trust_env;
-        }
 
 	public:
+		void set_option(string _tag) {
+			this->tag = _tag;
+		}
+
+		void set_option(Header header) {
+			this->header = header;
+		}
+
+		void set_option(Authentication auth){
+			this->auth = auth;
+		}
+
+		void set_option(bool trust_env) {
+			this->trust_env = trust_env;
+		}
 		Request_method request_method;
 		string url;
 		string resource;
@@ -134,7 +149,7 @@ namespace Crawler
             bundle[key] = value;
             return *this;
         }
-        Request& set_ignore_iterating_limit(bool value) {
+        void set_ignore_iterating_limit(bool value) {
             ignore_iterating_limit = value;
         }
 		string get_request_method(){
@@ -163,6 +178,20 @@ namespace Crawler
 			request_str += "\r\n";
 			cout << request_str;
 			return request_str;
+		}
+		template <typename... Tail>
+		Request(string _request_method, string _url, Request_content content, Tail... tail): request_method(str(_request_method))
+		{
+			if (content == Request_content::FILE)
+				isFile = true;
+			else
+				isFile = false;
+			int found = _url.find("/");
+			url = _url.substr(0,found);
+			resource = _url.substr(found);
+			ignore_iterating_limit = false;
+//            cout << url + resource << endl;
+			Crawler_Util::set_option(*this, tail...);
 		}
 
         Request(string _request_method, string _url, Request_content content, string _tag = ""): request_method(str(_request_method))
