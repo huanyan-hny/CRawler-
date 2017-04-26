@@ -25,14 +25,14 @@ namespace Crawler
             spider = _spider;
             item_pipeline = _item_pipeline;
             scheduler = make_unique<Generic_Scheduler>(INT_MAX);
-            scheduler->start_requests(spider->initial_tasks_wrapper());
+            scheduler->start_requests(spider->start_requests());
         }
         void set_max_threads(int t)
         {
             if (t>0)
                 max_threads = t;
         }
-        void set_maxium_layer(int l)
+        void set_maximum_layer(int l)
         {
             scheduler->set_max_layer(l);
         }
@@ -45,30 +45,24 @@ namespace Crawler
 					continue;
 				}
 
-				shared_ptr<Task> task = scheduler->get_request();
-				if (task == nullptr) {
+				shared_ptr<Request> req = scheduler->get_request();
+				if (req == nullptr) {
 					continue;
 				}
 				atomic_fetch_add(&active_threads, 1);
-				store_future( std::async(std::launch::async, [&](shared_ptr<Task> task)
+				store_future( std::async(std::launch::async, [&](shared_ptr<Request> req)
 				{
-					Task t = *task;
-					Request req = Request("get",task->get_url(),task->get_content());
-					shared_ptr<Response> res = Downloader::Curl_Downloader::get(req);
 
-
-
-					// should be
-//                    shared_ptr<Response> res = Downloader::Curl_Downloader::get(*task);
-					std::async(std::launch::async, [&](shared_ptr<Task> old_tsk, shared_ptr<Response> res) {
-						auto result = spider->parse_wrapper(old_tsk,res);
+                    shared_ptr<Response> res = Downloader::Curl_Downloader::get(*req);
+					std::async(std::launch::async, [&](shared_ptr<Request> old_req, shared_ptr<Response> res) {
+						auto result = spider->parse(old_req,res);
 						vector<shared_ptr<Item>> items = result.items;
-						vector<shared_ptr<Task>> reqs = result.next_reqs;
-                        scheduler->add_requests(reqs,old_tsk);
+						vector<shared_ptr<Request>> reqs = result.next_reqs;
+                        scheduler->add_requests(reqs,old_req);
 						item_pipeline->handle_items(items);
 						atomic_fetch_add(&active_threads, -1);
-					},task,res);
-				},task));
+					},req,res);
+				},req));
 
 
 			}

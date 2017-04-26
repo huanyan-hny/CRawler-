@@ -24,20 +24,74 @@ namespace Crawler {
 
     class Item;
     class Task;
+
+    typedef unordered_map<string,string> Form;
     typedef function<void(shared_ptr<Task>,shared_ptr<Response>,function<void(Task&)>,function<void(Item&)> )>
             spider_callback;
     class Task {
     public:
+        template <typename... Tail>
+        Task(string _url, spider_callback _callback, Tail... tail): url(_url), callback(_callback)
+        {
+            method = Request_method::GET;
+            content = Request_content::STRING;
+            session_type = Session_type::DEFAULT;
+            session_name = "";
+            auth = Authentication("","");
+            form = {};
+            Crawler_Util::set_option(*this, tail...);
+        }
         Task(string _url,
              spider_callback _callback,
              Request_method _method = Request_method::GET, Request_content _content = Request_content::STRING,
              Session_type _session_type = Session_type::DEFAULT, string _session_name = "",
-            Authentication _auth = Authentication()): url(_url) , method(_method),content(_content),session_type(_session_type),
-                                    session_name(_session_name),auth(_auth),callback(_callback)
+            Authentication _auth = Authentication(), Form _form = {}): url(_url) , method(_method),content(_content),session_type(_session_type),
+                                    session_name(_session_name),auth(_auth),callback(_callback), form(_form)
         {
             ignore_iterating_limit = false;
         }
         unordered_map<string,string> bundle;
+
+        void set_option(spider_callback&& _callback){
+            callback = _callback;
+        }
+
+        void set_option(const spider_callback& _callback){
+            callback = _callback;
+        }
+
+        void set_option(Request_method _method){
+            method = _method;
+        }
+
+        void set_option(Request_content _content){
+            content = _content;
+        }
+
+        void set_option(Session_type _session_type) {
+            session_type = _session_type;
+        }
+
+        void set_option(string _session_name){
+            session_name = _session_name;
+        }
+
+        void set_option(Authentication&& _auth){
+            auth = _auth;
+        }
+
+        void set_option(const Authentication& _auth){
+            auth = _auth;
+        }
+
+        void set_option(Form&& _form){
+            form = _form;
+        }
+
+        void set_option(const Form& _form){
+            form = _form;
+        }
+
         Task& put_string(string key, string value) {
             bundle[key] = value;
             return *this;
@@ -68,6 +122,12 @@ namespace Crawler {
         spider_callback get_callback() {
             return callback;
         };
+        auto get_authentication() {
+            return auth;
+        }
+        auto get_form() {
+            return form;
+        }
         bool ignore_iterating_limit;
     private:
         Request_method method;
@@ -77,6 +137,7 @@ namespace Crawler {
         string url;
         Authentication auth;
         spider_callback callback;
+        Form form;
     };
 
 }

@@ -8,6 +8,7 @@
 #include "Network.h"
 #include <cpr/cpr.h>
 #include <curl/curl.h>
+#include "Task.h"
 
 using namespace std;
 using namespace Crawler;
@@ -15,10 +16,21 @@ using boost::asio::ip::tcp;
 
 namespace Crawler
 {
+
+    struct Session {
+        cpr::Session session;
+        cpr::Cookies cookiejar;
+        Session() {};
+    };
+
+    typedef std::map<string,shared_ptr<Session>> SessionMap;
+
+
 	namespace Downloader {
         class Boostasio_Downloader {
         public:
-            static shared_ptr<Response> get(Request &req) {
+            shared_ptr<Response> get(Task &tsk) {
+                Request req = Request(tsk.get_method(), tsk.get_url(), tsk.get_content());
                 string request_str = req.render_request();
                 try {
                     boost::asio::io_service io_service;
@@ -94,89 +106,186 @@ namespace Crawler
                     return nullptr;
                 }
             }
-            //async
-            //std::async ?
-            //std::future ?
-            //std::thread ?
         };
 
 
         class Curl_Downloader {
+        private:
+            SessionMap sm;
+            shared_ptr<Session> default_session = make_shared<Session>();
         public:
-            static shared_ptr<Response> get(Request &req) {
+            shared_ptr<Response> post(Task &tsk) {
+
+                shared_ptr<Session> s;
+
+                cpr::Payload pl {};
+                for (auto &k: tsk.get_form()) {
+                    pl.AddPair({k.first, k.second});
+                }
+
+                if ( tsk.get_session_type() == Crawler::Session_type::NEW ){
+                    s = std::make_shared<Session>();
+                    sm.insert({tsk.get_session_name(), s});
+                }
+                else if ( tsk.get_session_type() == Crawler::Session_type::DEFAULT ) {
+                    s = default_session;
+                }
+                else {
+                    auto session_iter = sm.find(tsk.get_session_name());
+
+                    if ( session_iter == sm.end() ) {
+                        if ( tsk.get_session_type() == Crawler::Session_type::SPECIFIED || tsk.get_session_type() == Crawler::Session_type::AUTO)
+                            std::cout << "WARNING: Session " << tsk.get_session_name() << " is not found! Used default session instead" << endl;
+                        s = default_session;
+                    }
+                    else
+                        s = session_iter->second;
+                }
+
                 std::shared_ptr<Response> res = std::make_shared<Response>();
-                if (req.isFile) {
-                    CURL *image;
-                    CURLcode imgresult;
+                if (tsk.get_content() == Request_content::FILE) {
+                    CURL *file;
+                    CURLcode fileresult;
                     vector<char> vb;
 
-                    image = curl_easy_init();
-                    if( image ){
+                    file = curl_easy_init();
+                    if( file ){
                         // Open file
 
-                        curl_easy_setopt(image, CURLOPT_URL, req.get_url().c_str());
-                        curl_easy_setopt(image, CURLOPT_WRITEFUNCTION, Crawler_Util::write_to_vec);
-                        curl_easy_setopt(image, CURLOPT_WRITEDATA, &vb);
-                        curl_easy_setopt(image, CURLOPT_SSL_VERIFYPEER, 0L);
+                        curl_easy_setopt(file, CURLOPT_URL, tsk.get_url().c_str());
+                        curl_easy_setopt(file, CURLOPT_WRITEFUNCTION, Crawler_Util::write_to_vec);
+                        curl_easy_setopt(file, CURLOPT_WRITEDATA, &vb);
+                        curl_easy_setopt(file, CURLOPT_SSL_VERIFYPEER, 0L);
                         // Grab image
-                        imgresult = curl_easy_perform(image);
-                        if( imgresult ){
+                        fileresult = curl_easy_perform(file);
+                        if( fileresult ){
                             cout << "Cannot grab the image!\n";
                         }
                     }
-
-// Clean up the resources
-                    curl_easy_cleanup(image);
-// Close the file
+                    // Clean up the resources
+                    curl_easy_cleanup(file);
+                    // Close the file
                     res->content = vb;
 
                 }
 
                 else {
                     cpr::Response r;
-                    if (req.auth.get_username() != ""){
-                        r = cpr::Get(cpr::Url{req.url + req.resource}, cpr::Authentication {req.auth.get_username(),req.auth.get_password()});
-                        if (r.status_code == 401) // Try sending as both parameters and authentication
-                            r = cpr::Get(cpr::Url{req.url + req.resource}, cpr::Parameters {{req.auth.get_username(),req.auth.get_password()}});
-                            if (r.status_code == 401)
-                                cout << "ERROR: Tried sending authentication both as authentication and parameters, but failed!";
+
+                    if (tsk.get_authentication().get_username() != ""){
+                        s->session.SetUrl(cpr::Url{tsk.get_url()});
+                        s->session.SetAuth(cpr::Authentication {tsk.get_authentication().get_username(),tsk.get_authentication().get_password()});
+                        s->session.SetCookies(s->cookiejar);
+                        s->session.SetPayload(pl);
+                        r = s->session.Post();
+                        if (r.status_code == 401) {// Try sending as both parameters and authentication
+                            s->session.SetUrl(cpr::Url{tsk.get_url()});
+                            s->session.SetAuth(cpr::Authentication{"",""});
+                            s->session.SetCookies(s->cookiejar);
+                            s->session.SetParameters(cpr::Parameters {{tsk.get_authentication().get_username(),tsk.get_authentication().get_password()}});
+                            s->session.SetPayload(pl);
+                            r = s->session.Post();
+                        }
+                        if (r.status_code == 401)
+                            cout << "ERROR: Tried sending authentication both as authentication and parameters, but failed!";
                     }
-                    else
-                        r = cpr::Get(cpr::Url{req.url + req.resource});
+                    else {
+
+                        s->session.SetUrl(cpr::Url{tsk.get_url()});
+                        s->session.SetCookies(s->cookiejar);
+                        s->session.SetPayload(pl);
+                        r = s->session.Post();
+                    }
                     res->header = Crawler_Util::cpr_header_to_string(r.header);
                     res->status_code = r.status_code;
                     res->asio_response = r.text;
+                    s->cookiejar = r.cookies;
+                }
+                return res;
+
+            }
+            shared_ptr<Response> get(Task &tsk) {
+
+                shared_ptr<Session> s;
+
+
+                if ( tsk.get_session_type() == Crawler::Session_type::NEW ){
+                    s = std::make_shared<Session>();
+                    sm.insert({tsk.get_session_name(), s});
+                }
+                else if ( tsk.get_session_type() == Crawler::Session_type::DEFAULT ) {
+                    s = default_session;
+                }
+                else {
+                    auto session_iter = sm.find(tsk.get_session_name());
+
+                    if ( session_iter == sm.end() ) {
+                        if ( tsk.get_session_type() == Crawler::Session_type::SPECIFIED || tsk.get_session_type() == Crawler::Session_type::AUTO)
+                            std::cout << "WARNING: Session " << tsk.get_session_name() << " is not found! Used default session instead" << endl;
+                        s = default_session;
+                    }
+                    else
+                        s = session_iter->second;
+                }
+
+                std::shared_ptr<Response> res = std::make_shared<Response>();
+                if (tsk.get_content() == Request_content::FILE) {
+                    CURL *file;
+                    CURLcode fileresult;
+                    vector<char> vb;
+
+                    file = curl_easy_init();
+                    if( file ){
+                        // Open file
+
+                        curl_easy_setopt(file, CURLOPT_URL, tsk.get_url().c_str());
+                        curl_easy_setopt(file, CURLOPT_WRITEFUNCTION, Crawler_Util::write_to_vec);
+                        curl_easy_setopt(file, CURLOPT_WRITEDATA, &vb);
+                        curl_easy_setopt(file, CURLOPT_SSL_VERIFYPEER, 0L);
+                        // Grab image
+                        fileresult = curl_easy_perform(file);
+                        if( fileresult ){
+                            cout << "Cannot grab the image!\n";
+                        }
+                    }
+                    // Clean up the resources
+                    curl_easy_cleanup(file);
+                    // Close the file
+                    res->content = vb;
+
+                }
+
+                else {
+                    cpr::Response r;
+
+                    if (tsk.get_authentication().get_username() != ""){
+                        s->session.SetUrl(cpr::Url{tsk.get_url()});
+                        s->session.SetAuth(cpr::Authentication {tsk.get_authentication().get_username(),tsk.get_authentication().get_password()});
+                        s->session.SetCookies(s->cookiejar);
+                        r = s->session.Get();
+                        if (r.status_code == 401)  {// Try sending as both parameters and authentication
+                            s->session.SetUrl(cpr::Url{tsk.get_url()});
+                            s->session.SetAuth(cpr::Authentication{"",""});
+                            s->session.SetCookies(s->cookiejar);
+                            s->session.SetParameters(cpr::Parameters {{tsk.get_authentication().get_username(),tsk.get_authentication().get_password()}});
+                            r = s->session.Get();
+                        }
+                        if (r.status_code == 401)
+                            cout << "ERROR: Tried sending authentication both as authentication and parameters, but failed!";
+                    }
+                    else {
+                        s->session.SetUrl(cpr::Url{tsk.get_url()});
+                        s->session.SetCookies(s->cookiejar);
+                        r = s->session.Get();
+                    }
+                    res->header = Crawler_Util::cpr_header_to_string(r.header);
+                    res->status_code = r.status_code;
+                    res->asio_response = r.text;
+                    s->cookiejar = r.cookies;
                 }
                 return res;
             }
         };
     }
 
-
-    class Session
-    {
-    private:
-        Header header;
-        Authentication auth;
-        CookieJar cookiejar;
-        bool trust_env = true;
-
-    public:
-        Session(){}
-        template <typename... Tail>
-        shared_ptr<Response> request(string method, string url, bool isFile, Tail... tail)
-        {
-            Request r {method, url, Crawler::Request_content::STRING,""};
-            Crawler_Util::set_option(r, tail...);
-            merge_cookie(r.get_cookie_jar(), cookiejar);
-            std::shared_ptr<Response> res = Crawler::Downloader::Boostasio_Downloader::get(r);
-            extract_cookie_to_cookiejar(cookiejar, res->header);
-            return res;
-        }
-        template <typename... Tail>
-        shared_ptr<Response> get(string url, bool isFile, Tail... tail)
-        {
-            return request("GET", url,  isFile, tail...);
-        }
-    };
 }

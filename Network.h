@@ -21,7 +21,7 @@ namespace Crawler
 	typedef string request_payload;
 	typedef string response_payload;
     typedef std::unordered_map<std::string,std::string> Header;
-    typedef std::unordered_map<std::string,std::string> CookieJar;
+    typedef std::map<std::string,std::string> CookieJar;
 
 	enum class Request_method {
 //		GET, HEAD, POST, PUT, DELETE, CONNECT, OPTIONS,TRACE
@@ -208,6 +208,21 @@ namespace Crawler
             ignore_iterating_limit = false;
 //            cout << url + resource << endl;
         }
+
+
+		Request(Request_method _request_method, string _url, Request_content content, string _tag = ""): request_method(_request_method)
+		{
+			if (content == Request_content::FILE)
+				isFile = true;
+			else
+				isFile = false;
+			tag = _tag;
+			int found = _url.find("/");
+			url = _url.substr(0,found);
+			resource = _url.substr(found);
+			ignore_iterating_limit = false;
+//            cout << url + resource << endl;
+		}
 
         CookieJar& get_cookie_jar() {
             return cookiejar;
