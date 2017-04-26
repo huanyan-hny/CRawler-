@@ -31,7 +31,7 @@ int main()
     shared_ptr<Crawler::IMDBItemPipeline> pipeline = make_shared<Crawler::IMDBItemPipeline>();
 	Crawler::Engine<Crawler::Generic_Scheduler> e(spider,pipeline);
     e.set_max_threads(5);
-    e.set_maxium_layer(2);
+    e.set_maxium_layer(3);
     e.start();
     return 0;
 

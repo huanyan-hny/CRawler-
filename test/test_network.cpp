@@ -36,7 +36,6 @@ void test_curl_download_https(){
     fout.open("star_trek.jpg",ios::binary | ios::out);
     fout.write((char *)&(r_ptr->content[0]),r_ptr->content.size());
     fout.close();
-
 }
 
 void test_curl_request_basic(){

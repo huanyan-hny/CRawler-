@@ -8,6 +8,7 @@
 #include <queue>
 #include <atomic>
 #include <climits>
+#include "Task.h"
 #include "Network.h"
 using namespace std;
 
@@ -22,12 +23,12 @@ namespace Crawler
             max_layer = _max_layer;
             now_layer = 0;
         }
-        queue<shared_ptr<Request>> requests_pool;
+        queue<shared_ptr<Task>> requests_pool;
         unordered_map<string,int> hash_table;
 
         mutex q_lk;
 
-        void start_request(shared_ptr<Request> req)
+        void start_request(shared_ptr<Task> req)
         {
             q_lk.lock();
             while(!requests_pool.empty()) requests_pool.pop();
@@ -36,7 +37,7 @@ namespace Crawler
             hash_table[req->get_url()] = 1;
             q_lk.unlock();
         }
-        void start_requests(vector<shared_ptr<Request>> reqs)
+        void start_requests(vector<shared_ptr<Task>> reqs)
         {
             q_lk.lock();
             while(!requests_pool.empty()) requests_pool.pop();
@@ -48,7 +49,7 @@ namespace Crawler
             q_lk.unlock();
         }
 
-        void add_request(shared_ptr<Request> new_req, shared_ptr<Request> old_req)
+        void add_request(shared_ptr<Task> new_req, shared_ptr<Task> old_req)
         {
             q_lk.lock();
             auto new_url = new_req->get_url();
@@ -69,12 +70,13 @@ namespace Crawler
             }
             q_lk.unlock();
         }
-        void add_requests(vector<shared_ptr<Request>> new_reqs, shared_ptr<Request> old_req )
+        void add_requests(vector<shared_ptr<Task>> new_reqs, shared_ptr<Task> old_req )
         {
             q_lk.lock();
             auto old_url = old_req->get_url();
             for (auto &new_req : new_reqs) {
                 auto new_url = new_req->get_url();
+
                 if (hash_table.count(new_url)==0) {
                     if (hash_table[old_url] < max_layer && !new_req->ignore_iterating_limit) {
                         hash_table[new_url] = hash_table[old_url] + 1;
@@ -91,10 +93,10 @@ namespace Crawler
             }
             q_lk.unlock();
         }
-        shared_ptr<Request> get_request()
+        shared_ptr<Task> get_request()
         {
             q_lk.lock();
-            shared_ptr<Request> ret;
+            shared_ptr<Task> ret;
             if (requests_pool.empty())
                 ret = nullptr;
             else {

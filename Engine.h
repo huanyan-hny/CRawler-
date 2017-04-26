@@ -25,7 +25,7 @@ namespace Crawler
             spider = _spider;
             item_pipeline = _item_pipeline;
             scheduler = make_unique<Generic_Scheduler>(INT_MAX);
-            scheduler->start_requests(spider->start_requests());
+            scheduler->start_requests(spider->initial_tasks_wrapper());
         }
         void set_max_threads(int t)
         {
@@ -45,24 +45,30 @@ namespace Crawler
 					continue;
 				}
 
-				shared_ptr<Request> req = scheduler->get_request();
-				if (req == nullptr) {
+				shared_ptr<Task> task = scheduler->get_request();
+				if (task == nullptr) {
 					continue;
 				}
 				atomic_fetch_add(&active_threads, 1);
-				store_future( std::async(std::launch::async, [&](shared_ptr<Request> req)
+				store_future( std::async(std::launch::async, [&](shared_ptr<Task> task)
 				{
+					Task t = *task;
+					Request req = Request("get",task->get_url(),task->get_content());
+					shared_ptr<Response> res = Downloader::Curl_Downloader::get(req);
 
-                    shared_ptr<Response> res = Downloader::Curl_Downloader::get(*req);
-					std::async(std::launch::async, [&](shared_ptr<Request> old_req, shared_ptr<Response> res) {
-						auto result = spider->parse(old_req,res);
+
+
+					// should be
+//                    shared_ptr<Response> res = Downloader::Curl_Downloader::get(*task);
+					std::async(std::launch::async, [&](shared_ptr<Task> old_tsk, shared_ptr<Response> res) {
+						auto result = spider->parse_wrapper(old_tsk,res);
 						vector<shared_ptr<Item>> items = result.items;
-						vector<shared_ptr<Request>> reqs = result.next_reqs;
-                        scheduler->add_requests(reqs,old_req);
+						vector<shared_ptr<Task>> reqs = result.next_reqs;
+                        scheduler->add_requests(reqs,old_tsk);
 						item_pipeline->handle_items(items);
 						atomic_fetch_add(&active_threads, -1);
-					},req,res);
-				},req));
+					},task,res);
+				},task));
 
 
 			}
