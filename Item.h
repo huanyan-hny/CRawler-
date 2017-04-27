@@ -46,7 +46,10 @@ namespace Crawler
 		{
 			string s;
 			std::for_each(fields.begin(), fields.end(), [&](pair<string, string>& item) {
-				s = s + item.second + "," ;
+				string ss = item.second;
+				for (int i = 0; i<ss.size() ; ++ i)
+					if (ss[i] == ',') ss[i]= ' ';
+				s = s + ss + "," ;
 			});
 			s.resize(s.size() - 1);
 			return s;
@@ -55,7 +58,10 @@ namespace Crawler
 		{
 			string s;
 			std::for_each(fields.begin(), fields.end(), [&](pair<string, string>& item) {
-				s = s + item.first + ",";
+				string ss = item.first;
+				for (int i = 0; i<ss.size() ; ++ i)
+					if (ss[i] == ',') ss[i]= ' ';
+				s = s + ss + "," ;
 			});
 			s.resize(s.size() - 1);
 			return s;
