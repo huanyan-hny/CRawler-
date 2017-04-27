@@ -2,7 +2,7 @@
 // Created by elega on 4/26/17.
 //
 
-#include "../Generic_Scheduler.h"
+#include "include/CRawlerPlusPlus/Generic_Scheduler.h"
 #include <assert.h>
 
 using namespace Crawler;

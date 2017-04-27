@@ -2,9 +2,9 @@
 // Created by elega on 4/26/17.
 //
 
-#include "../Engine.h"
-#include "../Spider.h"
-#include "../ItemPipeline.h"
+#include "include/CRawlerPlusPlus/Engine.h"
+#include "include/CRawlerPlusPlus/Spider.h"
+#include "include/CRawlerPlusPlus/ItemPipeline.h"
 #include <assert.h>
 #include <iostream>
 #include <algorithm>

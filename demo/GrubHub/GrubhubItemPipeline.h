@@ -5,8 +5,8 @@
 #include <assert.h>
 #include <iostream>
 #include <fstream>
-#include "../../Item.h"
-#include "../../ItemPipeline.h"
+#include "Item.h"
+#include "ItemPipeline.h"
 #include <boost/filesystem.hpp>
 using namespace std;
 

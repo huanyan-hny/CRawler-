@@ -2,7 +2,7 @@
 // Created by elega on 4/26/17.
 //
 
-#include "../ItemPipeline.h"
+#include "include/CRawlerPlusPlus/ItemPipeline.h"
 #include <assert.h>
 #include <iostream>
 #include <algorithm>

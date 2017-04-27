@@ -12,7 +12,12 @@ namespace Crawler {
 
         ParserObj(string _s);
 
-        static bool isnum(string s);
+        static bool isnum(string s) {
+            for (char c:s)
+                if (!isdigit(c))
+                    return false;
+            return true;
+        }
 
         ParserObj getAttribute(string attribute);
 
