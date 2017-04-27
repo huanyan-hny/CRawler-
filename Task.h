@@ -30,6 +30,7 @@ namespace Crawler {
             spider_callback;
     class Task {
     public:
+        /*
         template <typename... Tail>
         Task(string _url, spider_callback _callback, Tail... tail): url(_url), callback(_callback)
         {
@@ -41,6 +42,9 @@ namespace Crawler {
             form = {};
             Crawler_Util::set_option(*this, tail...);
         }
+         */
+        Task()
+        {}
         Task(string _url,
              spider_callback _callback,
              Request_method _method = Request_method::GET, Request_content _content = Request_content::STRING,
@@ -49,6 +53,13 @@ namespace Crawler {
                                     session_name(_session_name),auth(_auth),callback(_callback), form(_form)
         {
             ignore_iterating_limit = false;
+//            cout<<"new "<< (long)this << " " <<url <<endl;
+        }
+
+
+        ~Task()
+        {
+//            cout<<"release " << (long)this <<" " << url <<endl;
         }
         unordered_map<string,string> bundle;
 
@@ -117,6 +128,7 @@ namespace Crawler {
             session_name = "" + _session_name;
         }
         string get_url() {
+//            cout<<"url "<<url<<endl;
             return url;
         }
         spider_callback get_callback() {
@@ -129,12 +141,14 @@ namespace Crawler {
             return form;
         }
         bool ignore_iterating_limit;
+
+        string url;
     private:
         Request_method method;
         Request_content content;
         Session_type session_type;
         string session_name;
-        string url;
+
         Authentication auth;
         spider_callback callback;
         Form form;

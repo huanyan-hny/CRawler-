@@ -30,7 +30,7 @@ namespace Crawler
         }
 
         void parse_link(shared_ptr<Task> task, shared_ptr<Response> res,
-                                    function<void(Task&)> add_task, function<void(Item&)> produce_item)
+                        function<void(Task&)> add_task, function<void(Item&)> produce_item)
         {
             Item i;
             string content = res->asio_response;

@@ -39,6 +39,7 @@ namespace Crawler
         }
         void start_requests(vector<shared_ptr<Task>> reqs)
         {
+
             q_lk.lock();
             while(!requests_pool.empty()) requests_pool.pop();
             hash_table.clear();
@@ -85,6 +86,7 @@ namespace Crawler
                             now_layer = hash_table[new_url];
                         }
                         requests_pool.push(new_req);
+
                     } else if (hash_table[old_url] <= max_layer && new_req->ignore_iterating_limit) {
                         hash_table[new_url] = hash_table[old_url];
                         requests_pool.push(new_req);
@@ -102,7 +104,6 @@ namespace Crawler
             else {
                 ret = requests_pool.front();
                 requests_pool.pop();
-
             }
             q_lk.unlock();
             return ret;
@@ -125,7 +126,7 @@ namespace Crawler
             return false;
         }
 
-        void set_max_layer(int l)
+        void set_iterations(int l)
         {
             if (l > 0 )
                 max_layer = l;

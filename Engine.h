@@ -6,6 +6,7 @@
 #include "ItemPipeline.h"
 #include "IMDBSpider.h"
 #include "IMDBItemPipeline.h"
+#include "Scheduler_Concepts.h"
 #include <iostream>
 #include <memory>
 #include <thread>
@@ -16,7 +17,7 @@ using namespace std;
 
 namespace Crawler
 {
-	template <class T>
+	template <Scheduler T>
 	class Engine
 	{
 	public:
@@ -27,14 +28,22 @@ namespace Crawler
 			scheduler = make_unique<Generic_Scheduler>(INT_MAX);
 			scheduler->start_requests(spider->initial_tasks_wrapper());
 		}
+        Engine(Spider* _spider, ItemPipeline* _item_pipeline ) {
+            max_threads = 1;
+            spider = shared_ptr<Spider>(_spider);
+            item_pipeline = shared_ptr<ItemPipeline>(_item_pipeline);
+            scheduler = make_unique<Generic_Scheduler>(INT_MAX);
+            scheduler->start_requests(spider->initial_tasks_wrapper());
+
+        }
 		void set_max_threads(int t)
 		{
 			if (t>0)
 				max_threads = t;
 		}
-		void set_maximum_layer(int l)
+		void set_iterations(int l)
 		{
-			scheduler->set_max_layer(l);
+			scheduler->set_iterations(l);
 		}
 		void start()
 		{
