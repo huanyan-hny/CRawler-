@@ -3,7 +3,7 @@
 #include <vector>
 #include <unordered_map>
 #include <assert.h>
-
+#include <algorithm>
 using namespace std;
 
 namespace Crawler

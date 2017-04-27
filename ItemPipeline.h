@@ -7,11 +7,13 @@
 #include <fstream>
 #include "Item.h"
 #include <boost/filesystem.hpp>
+#include <mutex>
 using namespace std;
 
 namespace Crawler
 {
 
+	class Spider;
 	class ItemPipeline
 	{
 	public:

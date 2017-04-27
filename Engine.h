@@ -4,8 +4,6 @@
 #include "Downloader.h"
 #include "Spider.h"
 #include "ItemPipeline.h"
-#include "IMDBSpider.h"
-#include "IMDBItemPipeline.h"
 #include "Scheduler_Concepts.h"
 #include <iostream>
 #include <memory>
