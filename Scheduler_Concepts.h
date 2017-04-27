@@ -15,8 +15,16 @@ class Task;
 
 template<typename T>
 concept bool Scheduler = requires (T s) {
-    {s.set_iterations(0)} -> void
+    {new T(0)} -> T*;
+    {s.set_iterations(0)} -> void;
     {s.start_request(shared_ptr<Task>())} -> void;
+    {s.start_requests(vector<shared_ptr<Task>>())} -> void;
+    {s.add_request(shared_ptr<Task>(),shared_ptr<Task>())} -> void;
+    {s.add_requests(vector<shared_ptr<Task>>(), shared_ptr<Task>())} -> void;
+    {s.get_request()} -> shared_ptr<Task>;
+    {s.get_size()} -> int;
+    {s.is_empty()} -> bool;
+    {s.finishing()} -> bool;
 };
 
 
