@@ -37,6 +37,7 @@ public:
         int pivot = 0;
         bool inkey = true;
         bool invalue = false;
+        bool instring = false;
         string key;
         for(int i=0;i<content.length();i++) {
             if (inkey) {
@@ -53,11 +54,13 @@ public:
                     string value = content.substr(pivot,i-pivot+1);
                     m[key] = checkValue(value);
                 } else if (content[i]=='"' && !leftJsonCount && !leftListCount) {
+                    instring = true;
                     quoteCount++;
                     if (quoteCount==2) {
                         string s = content.substr(pivot+1,i-pivot-1);
                         m[key] = Json(s);
                         invalue = false;
+                        instring = false;
                         quoteCount = 0;
                     }
                 } else if (content[i]=='[' && !leftJsonCount) {
@@ -72,7 +75,7 @@ public:
                     leftListCount--;
                 } else if (content[i]=='}' && !leftListCount) {
                     leftJsonCount--;
-                } else if (content[i]==',' && !leftJsonCount && !leftListCount) {
+                } else if (content[i]==',' && !leftJsonCount && !leftListCount && !instring) {
                     string value = content.substr(pivot,i-pivot);
                     m[key] = checkValue(value);
                     pivot = i+1;
@@ -175,6 +178,7 @@ private:
         int pivot = 0;
         int leftListCount = 0;
         int leftJsonCount = 0;
+        bool instring = false;
         for (int i=0;i<content.length();i++) {
             if (i == content.length()-1 && content[i]!='"') {
                 string value = content.substr(pivot,i-pivot+1);
@@ -192,15 +196,17 @@ private:
             } else if (content[i]=='}' && !leftListCount) {
                 leftJsonCount--;
             } else if (content[i]=='"' && !leftListCount && !leftJsonCount) {
+                instring = true;
                 quoteCount++;
                 if (quoteCount==2) {
                     string strvalue = content.substr(pivot+1,i-pivot-1);
                     res.push_back(Json(strvalue));
+                    instring = false;
                     quoteCount = 0;
                     i++;
                     pivot = i+1;
                 }
-            } else if (content[i]==',' && !leftListCount && !leftJsonCount) {
+            } else if (content[i]==',' && !leftListCount && !leftJsonCount && !instring) {
                 string value = content.substr(pivot,i-pivot);
                 res.push_back(checkValue(value));
                 pivot = i+1;
