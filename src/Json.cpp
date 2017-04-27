@@ -55,7 +55,7 @@ size_t Json::size() {
     
 string Json::toString() {
     if (type=="string") {
-        return '"' + stringvalue + '"';
+        return "\"" + stringvalue + "\"";
     }
     else if (type=="int")
         return to_string(intValue);

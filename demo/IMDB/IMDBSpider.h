@@ -2,7 +2,7 @@
 #include <string>
 #include <vector>
 #include <memory>
-#include "include/CRawlerPlusPlus/Spider.h"
+#include "../../include/CRawlerPlusPlus/Spider.h"
 
 using namespace std;
 
