@@ -53,8 +53,8 @@ namespace Crawler
 				store_future( std::async(std::launch::async, [&](shared_ptr<Task> task)
 				{
 					Task t = *task;
-					Request req = Request("get",task->get_url(),task->get_content());
-					shared_ptr<Response> res = Downloader::Curl_Downloader::get(req);
+//					Request req = Request("get",task->get_url(),task->get_content());
+					shared_ptr<Response> res = cd.get(*task);
 
 
 
@@ -89,7 +89,7 @@ namespace Crawler
 		shared_ptr<Spider> spider;
 		unique_ptr<Generic_Scheduler> scheduler;
 		shared_ptr<ItemPipeline> item_pipeline;
-
+		Downloader::Curl_Downloader cd;
 		std::atomic_int active_threads{0};
 		mutex future_lk;
 		vector<future<void>> pending_futures;
