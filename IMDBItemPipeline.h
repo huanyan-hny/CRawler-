@@ -25,9 +25,15 @@ namespace Crawler
             outputer.close();
         }
 		void process_item(shared_ptr<Item> item)
-		{
-            if (item->type == "movie")
-                outputer<<item->to_csv()<<endl;
+        {
+            if (item->type == "movie") {
+                static bool first = true;
+                if (first) {
+                    outputer << item->to_csv_title() << endl;
+                    first = false;
+                }
+                outputer << item->to_csv() << endl;
+            }
             else if (item->type == "poster")
                 simple_file_write(item->data["poster"],item->name);
 		}

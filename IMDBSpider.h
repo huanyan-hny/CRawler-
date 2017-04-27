@@ -39,11 +39,15 @@ namespace Crawler
             vector<string> related_movie_urls = find_all(content, "a", "ref_=tt_rec_tti");
             string movie_poster = Parser::find_one(content, "img", "Poster,itemprop=\"image\"");
             string movie_poster_link = getAttribute(movie_poster, "src");
+            string rating = Parser::getInnerHTML(Parser::find_one(content,"span","ratingValue"));
+            string rating_count = Parser::getInnerHTML(Parser::find_one(content,"span","ratingCount"));
             cout<<"movie_poster_link " << movie_poster_link<<endl;
             if (movie_name != "") {
                 i.type = "movie";
                 i["movie_name"] = movie_name;
                 i["movie_url"] = task->get_url();
+                i["rating"] = rating;
+                i["rating_count"] = rating_count;
                 produce_item(i);
                 for (auto &url: related_movie_urls) {
                     auto url_link = domains + getAttribute(url, "href");
