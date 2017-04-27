@@ -36,7 +36,7 @@ namespace Crawler {
             spider_callback;
     class Task {
     public:
-        /*
+
         template <typename... Tail>
         Task(string _url, spider_callback _callback, Tail... tail): url(_url), callback(_callback)
         {
@@ -48,7 +48,7 @@ namespace Crawler {
             form = {};
             Crawler_Util::set_option(*this, tail...);
         }
-         */
+
         Task()
         {}
         Task(string _url,

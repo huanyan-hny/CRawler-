@@ -17,7 +17,8 @@ using namespace std;
 
 namespace Crawler
 {
-	template <Scheduler T>
+//	template <Scheduler T>
+    template <typename T>
 	class Engine
 	{
 	public:

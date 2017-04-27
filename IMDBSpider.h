@@ -34,13 +34,15 @@ namespace Crawler
         {
             Item i;
             string content = res->asio_response;
-            string movie_name = getAttribute(find_one(content, "meta", "og:title"),"content");
-            vector<string> related_movie_names = find_all(content, "img", "height=\"113\", width=\"76\"");
-            vector<string> related_movie_urls = find_all(content, "a", "ref_=tt_rec_tti");
-            string movie_poster = Parser::find_one(content, "img", "Poster,itemprop=\"image\"");
-            string movie_poster_link = getAttribute(movie_poster, "src");
-            string rating = Parser::getInnerHTML(Parser::find_one(content,"span","ratingValue"));
-            string rating_count = Parser::getInnerHTML(Parser::find_one(content,"span","ratingCount"));
+
+            auto movie_name = ParserObj(content).find_one("meta", "og:title").getAttribute("content").s;
+            auto related_movie_names = ParserObj(content).find_all("img", "height=\"113\", width=\"76\"");
+            auto related_movie_urls = ParserObj(content).find_all( "a", "ref_=tt_rec_tti");
+            auto movie_poster_link = ParserObj(content).find_one("img", "Poster,itemprop=\"image\"").getAttribute("src").s;
+
+            string rating = ParserObj(content).find_one("span","ratingValue").getInnerHTML().s;
+            string rating_count = ParserObj(content).find_one("span","ratingCount").getInnerHTML().s;
+
             cout<<"movie_poster_link " << movie_poster_link<<endl;
             if (movie_name != "") {
                 i.type = "movie";
@@ -50,7 +52,7 @@ namespace Crawler
                 i["rating_count"] = rating_count;
                 produce_item(i);
                 for (auto &url: related_movie_urls) {
-                    auto url_link = domains + getAttribute(url, "href");
+                    auto url_link = domains + getAttribute(url.s, "href");
                     add_task(Task(url_link, callback(&IMDBSpider::parse_link)).
                             put_string("type","link"));
                     add_task(Task(movie_poster_link, callback(&IMDBSpider::parse_image), Request_method::GET, Request_content::FILE)
