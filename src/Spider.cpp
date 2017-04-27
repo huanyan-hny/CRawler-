@@ -1,7 +1,7 @@
 //
 // Created by elega on 4/27/17.
 //
-#include "Spider.h"
+#include "../include/CRawlerPlusPlus/Spider.h"
 namespace Crawler
 {
 
