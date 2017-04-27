@@ -4,6 +4,7 @@
 #include <unordered_map>
 #include <assert.h>
 #include <algorithm>
+
 using namespace std;
 
 namespace Crawler
@@ -66,8 +67,6 @@ namespace Crawler
 			s.resize(s.size() - 1);
 			return s;
 		}
-
-
 
 		void add_file(string field, const vector<char>& bytes, string extension = "txt")
 		{

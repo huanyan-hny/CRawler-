@@ -9,7 +9,7 @@
 #include <atomic>
 #include <climits>
 #include "Task.h"
-#include "Network.h"
+#include "include/CRawlerPlusPlus/Network.h"
 using namespace std;
 
 namespace Crawler

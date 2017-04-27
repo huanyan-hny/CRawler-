@@ -1,10 +1,10 @@
 #pragma once
 //http://stackoverflow.com/questions/15752659/thread-pooling-in-c11
 #include "Generic_Scheduler.h"
-#include "Downloader.h"
+#include "include/CRawlerPlusPlus/Downloader.h"
 #include "Spider.h"
 #include "ItemPipeline.h"
-#include "Scheduler_Concepts.h"
+#include "include/CRawlerPlusPlus/Scheduler_Concepts.h"
 #include <iostream>
 #include <memory>
 #include <thread>

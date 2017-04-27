@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.7)
 project(CRawlerPlusPlus_git)
-set (CMAKE_CXX_FLAGS "--std=c++1z -fconcepts ${CMAKE_CXX_FLAGS}")
+#set (CMAKE_CXX_FLAGS "--std=c++1z -fconcepts ${CMAKE_CXX_FLAGS}")
+set (CMAKE_CXX_FLAGS "--std=c++1z ${CMAKE_CXX_FLAGS}")
 set(SOURCE_FILES test/test_network.cpp)
 #set(SOURCE_FILES main.cpp)
 add_executable(CRawlerPlusPlus ${SOURCE_FILES})

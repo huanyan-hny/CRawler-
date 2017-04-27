@@ -5,14 +5,14 @@
 #include <mutex>
 #include <queue>
 
-#include "Parser.h"
+#include "include/CRawlerPlusPlus/Parser.h"
 #include "Engine.h"
 
-#include "IMDBSpider.h"
-#include "IMDBItemPipeline.h"
+#include "demo/IMDB/IMDBSpider.h"
+#include "demo/IMDB/IMDBItemPipeline.h"
 
-#include "GrubhubItemPipeline.h"
-#include "GrubhubSpider.h"
+#include "demo/GrubHub/GrubhubItemPipeline.h"
+#include "demo/GrubHub/GrubhubSpider.h"
 
 using namespace std;
 
