@@ -28,14 +28,6 @@ namespace Crawler
 			scheduler = make_unique<Generic_Scheduler>(INT_MAX);
 			scheduler->start_requests(spider->initial_tasks_wrapper());
 		}
-        Engine(Spider* _spider, ItemPipeline* _item_pipeline ) {
-            max_threads = 1;
-            spider = shared_ptr<Spider>(_spider);
-            item_pipeline = shared_ptr<ItemPipeline>(_item_pipeline);
-            scheduler = make_unique<Generic_Scheduler>(INT_MAX);
-            scheduler->start_requests(spider->initial_tasks_wrapper());
-
-        }
 		void set_max_threads(int t)
 		{
 			if (t>0)

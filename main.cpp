@@ -14,7 +14,7 @@
 using namespace std;
 using namespace Crawler;
 
-int main123()
+int main123456()
 {
     Task t1("www.imdb.com/title/tt0796366/?ref_=tt_rec_tti",nullptr,Request_method::GET,Request_content::STRING);
     Task t2("www.google.com",nullptr,Request_method::GET,Request_content::STRING);
@@ -22,14 +22,19 @@ int main123()
     Downloader::Curl_Downloader cd;
 
     thread th1([&](){
-        auto sb = cd.get(t1)->asio_response;
-        cout<<Parser::getInnerHTML(Parser::find_one(sb,"span","ratingValue")) <<endl;
-        cout<<Parser::getInnerHTML(Parser::find_one(sb,"span","ratingCount")) <<endl;
-
+        auto sb = cd.get(t1);
+        cout<<"done! th1"<<endl;
+        cout<<sb->asio_response.size()<<endl;
     });
 
+    thread th2([&](){
+        auto sb = cd.get(t2);
+        cout<<"done! th2"<<endl;
+        cout<<sb->asio_response.size()<<endl;
+    });
 
     th1.join();
+    th2.join();
 //    std::shared_ptr<Response> r_ptr = cd.get(t1);
 //    std::shared_ptr<Response> r_ptr2 = cd.get(t2);
 
@@ -38,9 +43,9 @@ int main123()
 
 int main()
 {
-    Crawler::IMDBSpider spider;
-    Crawler::IMDBItemPipeline pipeline;
-	Crawler::Engine<Crawler::Generic_Scheduler> e(&spider,&pipeline);
+    shared_ptr<Crawler::IMDBSpider> spider = make_shared<Crawler::IMDBSpider>();
+    shared_ptr<Crawler::IMDBItemPipeline> pipeline = make_shared<Crawler::IMDBItemPipeline>();
+    Crawler::Engine<Crawler::Generic_Scheduler> e(spider,pipeline);
     e.set_max_threads(3);
     e.set_iterations(3);
     e.start();
