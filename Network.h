@@ -20,17 +20,17 @@ namespace Crawler
 {
 	typedef string request_payload;
 	typedef string response_payload;
-    typedef std::unordered_map<std::string,std::string> Header;
     typedef std::map<std::string,std::string> CookieJar;
 
 	enum class Request_method {
-//		GET, HEAD, POST, PUT, DELETE, CONNECT, OPTIONS,TRACE
+//		GET, HEAD, POST, PUT, DELETE, CONNECT, OPTIONS, TRACE
 		GET, POST
 	};
 
     enum class Request_content {
         FILE,
-        STRING
+        HTML,
+		JSON,
     };
 
 	void extract_cookie_to_cookiejar(CookieJar& ckj, string header) {
@@ -55,6 +55,8 @@ namespace Crawler
         return {buffers_begin(sb.data()),
                 buffers_end(sb.data())};
     };
+
+	using Header = cpr::Header;
 
     class Authentication
     {

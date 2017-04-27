@@ -176,10 +176,13 @@ namespace Crawler
 
                 else {
                     cpr::Response r;
-
-                    if (tsk.get_authentication().get_username() != ""){
+                    session_cpy.session.SetHeader(tsk.get_header());
+                    if (tsk.get_auth_type() != Auth_type::NONE){
                         session_cpy.session.SetUrl(cpr::Url{tsk.get_url()});
-                        session_cpy.session.SetAuth(cpr::Authentication {tsk.get_authentication().get_username(),tsk.get_authentication().get_password()});
+                        if (tsk.get_auth_type() == Auth_type::BASIC)
+                            session_cpy.session.SetAuth(cpr::Authentication {tsk.get_authentication().get_username(),tsk.get_authentication().get_password()});
+                        else
+                            session_cpy.session.SetHeader({{"Authorization", tsk.get_authentication().get_username() + " " + tsk.get_authentication().get_password()}});
                         session_cpy.session.SetCookies(session_cpy.cookiejar);
                         session_cpy.session.SetPayload(pl);
                         r = session_cpy.session.Post();
@@ -263,10 +266,13 @@ namespace Crawler
 
                 else {
                     cpr::Response r;
-
-                    if (tsk.get_authentication().get_username() != ""){
+                    session_cpy.session.SetHeader(tsk.get_header());
+                    if (tsk.get_auth_type() != Auth_type::NONE){
                         session_cpy.session.SetUrl(cpr::Url{tsk.get_url()});
-                        session_cpy.session.SetAuth(cpr::Authentication {tsk.get_authentication().get_username(),tsk.get_authentication().get_password()});
+                        if (tsk.get_auth_type() == Auth_type::BASIC)
+                            session_cpy.session.SetAuth(cpr::Authentication {tsk.get_authentication().get_username(),tsk.get_authentication().get_password()});
+                        else
+                            session_cpy.session.SetHeader({{"Authorization", tsk.get_authentication().get_username() + " " + tsk.get_authentication().get_password()}});
                         session_cpy.session.SetCookies(session_cpy.cookiejar);
                         r = session_cpy.session.Get();
                         if (r.status_code == 401) {// Try sending as both parameters and authentication

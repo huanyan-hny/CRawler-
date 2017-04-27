@@ -22,6 +22,12 @@ namespace Crawler {
         DEFAULT,
     };
 
+    enum class Auth_type {
+        NONE,
+        BASIC,
+        OAUTH2,
+    };
+
     class Item;
     class Task;
 
@@ -34,7 +40,7 @@ namespace Crawler {
         Task(string _url, spider_callback _callback, Tail... tail): url(_url), callback(_callback)
         {
             method = Request_method::GET;
-            content = Request_content::STRING;
+            content = Request_content::HTML;
             session_type = Session_type::DEFAULT;
             session_name = "";
             auth = Authentication("","");
@@ -43,10 +49,11 @@ namespace Crawler {
         }
         Task(string _url,
              spider_callback _callback,
-             Request_method _method = Request_method::GET, Request_content _content = Request_content::STRING,
+             Request_method _method = Request_method::GET, Request_content _content = Request_content::HTML,
              Session_type _session_type = Session_type::DEFAULT, string _session_name = "",
-            Authentication _auth = Authentication(), Form _form = {}): url(_url) , method(_method),content(_content),session_type(_session_type),
-                                    session_name(_session_name),auth(_auth),callback(_callback), form(_form)
+             Auth_type _auth_type = Auth_type::NONE,
+             Authentication _auth = Authentication(), Form _form = {}, Header _header={}): url(_url) , method(_method),content(_content),session_type(_session_type),
+                                    session_name(_session_name),auth(_auth),callback(_callback), form(_form), header(_header)
         {
             ignore_iterating_limit = false;
         }
@@ -64,6 +71,10 @@ namespace Crawler {
             method = _method;
         }
 
+        void set_option(Auth_type _auth_type) {
+            auth_type = _auth_type;
+        }
+
         void set_option(Request_content _content){
             content = _content;
         }
@@ -72,6 +83,9 @@ namespace Crawler {
             session_type = _session_type;
         }
 
+        void set_option(Header _header){
+            header = _header;
+        }
         void set_option(string _session_name){
             session_name = _session_name;
         }
@@ -125,6 +139,13 @@ namespace Crawler {
         auto get_authentication() {
             return auth;
         }
+        auto get_header() {
+            return header;
+        }
+
+        auto get_auth_type() {
+            return auth_type;
+        }
         auto get_form() {
             return form;
         }
@@ -136,8 +157,10 @@ namespace Crawler {
         string session_name;
         string url;
         Authentication auth;
+        Auth_type auth_type;
         spider_callback callback;
         Form form;
+        Header header;
     };
 
 }

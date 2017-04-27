@@ -5,6 +5,7 @@
 #include <fstream>
 #include "../Downloader.h"
 #include "../Network.h"
+#include <cpr/cpr.h>
 
 using boost::asio::ip::tcp;
 using namespace Crawler;
@@ -42,6 +43,12 @@ void test_curl_download_https(){
 
 }
 
+size_t writeFunction(void *ptr, size_t size, size_t nmemb, std::string* data) {
+    data->append((char*) ptr, size * nmemb);
+    return size * nmemb;
+}
+
+
 void test_curl_request_basic(){
 
     Task tsk("www.imdb.com/title/tt0796366/", nullptr);
@@ -50,14 +57,21 @@ void test_curl_request_basic(){
     cout << r_ptr->asio_response;
 
 }
+
+void test_curl_auth2(){
+    Task tsk("https://api-gtm.grubhub.com/restaurants/74367",nullptr,Auth_type::OAUTH2,Authentication("Bearer","bdd5ff4e-cfbe-4b03-818b-2d3b5fa974ec"));
+    Downloader::Curl_Downloader cd;
+    std::shared_ptr<Response> r_ptr = cd.get(tsk);
+    cout << r_ptr->asio_response;
+}
 //
 //
 //void test_session_basic() {
-////    Crawler::Session s {};
-////    std::shared_ptr<Response> r_ptr = s.request("GET", "www.rottentomatoes.com/m/the_lost_city_of_z");
-////    cout << r_ptr->header;
-////    r_ptr = s.request("GET", "www.rottentomatoes.com/m/sleight");
-////    cout << r_ptr->asio_response;
+//    Crawler::Session s {};
+//    std::shared_ptr<Response> r_ptr = s.request("GET", "www.rottentomatoes.com/m/the_lost_city_of_z");
+//    cout << r_ptr->header;
+//    r_ptr = s.request("GET", "www.rottentomatoes.com/m/sleight");
+//    cout << r_ptr->asio_response;
 //
 //}
 //
@@ -90,11 +104,12 @@ void test_curl_post() {
 int main(int argc, char* argv[])
 {
 //    test_request_basic();
-    test_curl_request_basic();
-    test_curl_download();
-    test_curl_download_https();
-    test_curl_authentication();
-    test_curl_post();
+//    test_curl_request_basic();
+//    test_curl_download();
+//    test_curl_download_https();
+//    test_curl_authentication();
+//    test_curl_post();
+    test_curl_auth2();
 //    test_session_basic();
     return 0;
 }

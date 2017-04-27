@@ -8,8 +8,11 @@
 #include "Parser.h"
 #include "Engine.h"
 
-#include "IMDBSpider.h"
-#include "IMDBItemPipeline.h"
+//#include "IMDBSpider.h"
+//#include "IMDBItemPipeline.h"
+
+#include "GrubhubItemPipeline.h"
+#include "GrubhubSpider.h"
 
 using namespace std;
 
@@ -18,11 +21,13 @@ using namespace std;
 
 int main()
 {
-    shared_ptr<Crawler::IMDBSpider> spider = make_shared<Crawler::IMDBSpider>();
-    shared_ptr<Crawler::IMDBItemPipeline> pipeline = make_shared<Crawler::IMDBItemPipeline>();
+//    shared_ptr<Crawler> spider = make_shared<Crawler::IMDBSpider>();
+//    shared_ptr<Crawler::IMDBItemPipeline> pipeline = make_shared<Crawler::IMDBItemPipeline>();
+    auto spider = make_shared<Crawler::GrubhubSpider>();
+    auto pipeline = make_shared<Crawler::GrubhubItemPipeline>();
 	Crawler::Engine<Crawler::Generic_Scheduler> e(spider,pipeline);
     e.set_max_threads(5);
-    e.set_maximum_layer(3);
+    e.set_maximum_layer(2);
     e.start();
     return 0;
 
