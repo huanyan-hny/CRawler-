@@ -89,7 +89,7 @@ void test_curl_post() {
 
 int main(int argc, char* argv[])
 {
-    test_request_basic();
+//    test_request_basic();
     test_curl_request_basic();
     test_curl_download();
     test_curl_download_https();

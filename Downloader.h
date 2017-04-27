@@ -9,6 +9,7 @@
 #include <cpr/cpr.h>
 #include <curl/curl.h>
 #include "Task.h"
+#include <mutex>
 
 using namespace std;
 using namespace Crawler;
@@ -20,7 +21,12 @@ namespace Crawler
     struct Session {
         cpr::Session session;
         cpr::Cookies cookiejar;
+        mutex cookiejar_mtx;
         Session() {};
+        Session(const Session &obj) {
+            // copy constructor
+            cookiejar = obj.cookiejar;
+        }
     };
 
     typedef std::map<string,shared_ptr<Session>> SessionMap;
@@ -112,7 +118,6 @@ namespace Crawler
         class Curl_Downloader {
         private:
             SessionMap sm;
-            shared_ptr<Session> default_session = make_shared<Session>();
         public:
             shared_ptr<Response> post(Task &tsk) {
 
@@ -128,7 +133,7 @@ namespace Crawler
                     sm.insert({tsk.get_session_name(), s});
                 }
                 else if ( tsk.get_session_type() == Crawler::Session_type::DEFAULT ) {
-                    s = default_session;
+                    s = std::make_shared<Session>();
                 }
                 else {
                     auto session_iter = sm.find(tsk.get_session_name());
@@ -136,12 +141,12 @@ namespace Crawler
                     if ( session_iter == sm.end() ) {
                         if ( tsk.get_session_type() == Crawler::Session_type::SPECIFIED || tsk.get_session_type() == Crawler::Session_type::AUTO)
                             std::cout << "WARNING: Session " << tsk.get_session_name() << " is not found! Used default session instead" << endl;
-                        s = default_session;
+                        s = std::make_shared<Session>();
                     }
                     else
                         s = session_iter->second;
                 }
-
+                Session session_cpy = *s.get(); // a copy
                 std::shared_ptr<Response> res = std::make_shared<Response>();
                 if (tsk.get_content() == Request_content::FILE) {
                     CURL *file;
@@ -173,33 +178,35 @@ namespace Crawler
                     cpr::Response r;
 
                     if (tsk.get_authentication().get_username() != ""){
-                        s->session.SetUrl(cpr::Url{tsk.get_url()});
-                        s->session.SetAuth(cpr::Authentication {tsk.get_authentication().get_username(),tsk.get_authentication().get_password()});
-                        s->session.SetCookies(s->cookiejar);
-                        s->session.SetPayload(pl);
-                        r = s->session.Post();
+                        session_cpy.session.SetUrl(cpr::Url{tsk.get_url()});
+                        session_cpy.session.SetAuth(cpr::Authentication {tsk.get_authentication().get_username(),tsk.get_authentication().get_password()});
+                        session_cpy.session.SetCookies(session_cpy.cookiejar);
+                        session_cpy.session.SetPayload(pl);
+                        r = session_cpy.session.Post();
                         if (r.status_code == 401) {// Try sending as both parameters and authentication
-                            s->session.SetUrl(cpr::Url{tsk.get_url()});
-                            s->session.SetAuth(cpr::Authentication{"",""});
-                            s->session.SetCookies(s->cookiejar);
-                            s->session.SetParameters(cpr::Parameters {{tsk.get_authentication().get_username(),tsk.get_authentication().get_password()}});
-                            s->session.SetPayload(pl);
-                            r = s->session.Post();
+                            session_cpy.session.SetUrl(cpr::Url{tsk.get_url()});
+                            session_cpy.session.SetAuth(cpr::Authentication{"",""});
+                            session_cpy.session.SetCookies(session_cpy.cookiejar);
+                            session_cpy.session.SetParameters(cpr::Parameters {{tsk.get_authentication().get_username(),tsk.get_authentication().get_password()}});
+                            session_cpy.session.SetPayload(pl);
+                            r = session_cpy.session.Post();
                         }
                         if (r.status_code == 401)
                             cout << "ERROR: Tried sending authentication both as authentication and parameters, but failed!";
                     }
                     else {
 
-                        s->session.SetUrl(cpr::Url{tsk.get_url()});
-                        s->session.SetCookies(s->cookiejar);
-                        s->session.SetPayload(pl);
-                        r = s->session.Post();
+                        session_cpy.session.SetUrl(cpr::Url{tsk.get_url()});
+                        session_cpy.session.SetCookies(session_cpy.cookiejar);
+                        session_cpy.session.SetPayload(pl);
+                        r = session_cpy.session.Post();
                     }
                     res->header = Crawler_Util::cpr_header_to_string(r.header);
                     res->status_code = r.status_code;
                     res->asio_response = r.text;
+                    s->cookiejar_mtx.lock();
                     s->cookiejar = r.cookies;
+                    s->cookiejar_mtx.unlock();
                 }
                 return res;
 
@@ -208,13 +215,12 @@ namespace Crawler
 
                 shared_ptr<Session> s;
 
-
                 if ( tsk.get_session_type() == Crawler::Session_type::NEW ){
                     s = std::make_shared<Session>();
                     sm.insert({tsk.get_session_name(), s});
                 }
                 else if ( tsk.get_session_type() == Crawler::Session_type::DEFAULT ) {
-                    s = default_session;
+                    s = std::make_shared<Session>();
                 }
                 else {
                     auto session_iter = sm.find(tsk.get_session_name());
@@ -222,12 +228,12 @@ namespace Crawler
                     if ( session_iter == sm.end() ) {
                         if ( tsk.get_session_type() == Crawler::Session_type::SPECIFIED || tsk.get_session_type() == Crawler::Session_type::AUTO)
                             std::cout << "WARNING: Session " << tsk.get_session_name() << " is not found! Used default session instead" << endl;
-                        s = default_session;
+                        s = std::make_shared<Session>();
                     }
                     else
                         s = session_iter->second;
                 }
-
+                Session session_cpy = *s.get(); // a copy
                 std::shared_ptr<Response> res = std::make_shared<Response>();
                 if (tsk.get_content() == Request_content::FILE) {
                     CURL *file;
@@ -259,29 +265,32 @@ namespace Crawler
                     cpr::Response r;
 
                     if (tsk.get_authentication().get_username() != ""){
-                        s->session.SetUrl(cpr::Url{tsk.get_url()});
-                        s->session.SetAuth(cpr::Authentication {tsk.get_authentication().get_username(),tsk.get_authentication().get_password()});
-                        s->session.SetCookies(s->cookiejar);
-                        r = s->session.Get();
-                        if (r.status_code == 401)  {// Try sending as both parameters and authentication
-                            s->session.SetUrl(cpr::Url{tsk.get_url()});
-                            s->session.SetAuth(cpr::Authentication{"",""});
-                            s->session.SetCookies(s->cookiejar);
-                            s->session.SetParameters(cpr::Parameters {{tsk.get_authentication().get_username(),tsk.get_authentication().get_password()}});
-                            r = s->session.Get();
+                        session_cpy.session.SetUrl(cpr::Url{tsk.get_url()});
+                        session_cpy.session.SetAuth(cpr::Authentication {tsk.get_authentication().get_username(),tsk.get_authentication().get_password()});
+                        session_cpy.session.SetCookies(session_cpy.cookiejar);
+                        r = session_cpy.session.Get();
+                        if (r.status_code == 401) {// Try sending as both parameters and authentication
+                            session_cpy.session.SetUrl(cpr::Url{tsk.get_url()});
+                            session_cpy.session.SetAuth(cpr::Authentication{"",""});
+                            session_cpy.session.SetCookies(session_cpy.cookiejar);
+                            session_cpy.session.SetParameters(cpr::Parameters {{tsk.get_authentication().get_username(),tsk.get_authentication().get_password()}});
+                            r = session_cpy.session.Get();
                         }
                         if (r.status_code == 401)
                             cout << "ERROR: Tried sending authentication both as authentication and parameters, but failed!";
                     }
                     else {
-                        s->session.SetUrl(cpr::Url{tsk.get_url()});
-                        s->session.SetCookies(s->cookiejar);
-                        r = s->session.Get();
+
+                        session_cpy.session.SetUrl(cpr::Url{tsk.get_url()});
+                        session_cpy.session.SetCookies(session_cpy.cookiejar);
+                        r = session_cpy.session.Get();
                     }
                     res->header = Crawler_Util::cpr_header_to_string(r.header);
                     res->status_code = r.status_code;
                     res->asio_response = r.text;
+                    s->cookiejar_mtx.lock();
                     s->cookiejar = r.cookies;
+                    s->cookiejar_mtx.unlock();
                 }
                 return res;
             }
