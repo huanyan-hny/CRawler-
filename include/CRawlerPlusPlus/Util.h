@@ -5,18 +5,19 @@
 #ifndef CRAWLERPLUSPLUS_GIT_UTIL_H
 #define CRAWLERPLUSPLUS_GIT_UTIL_H
 
-#endif //CRAWLERPLUSPLUS_GIT_UTIL_H
+
 
 #include <string>
 #include <algorithm>
-#include "Network.h"
+//#include "Network.h"
 
 #define FWD(...) ::std::forward<decltype(__VA_ARGS__)>(__VA_ARGS__)
 
 using namespace std;
 
 namespace Crawler_Util{
-    string to_lower(string s){
+
+    inline string to_lower(string s){
         std::transform(s.begin(), s.end(), s.begin(), ::tolower);
         return s;
     }
@@ -36,7 +37,7 @@ namespace Crawler_Util{
         set_option(c, FWD(ts)...);
     }
 
-    std::vector<std::string> &split(const std::string &s, char delim, std::vector<std::string> &elems) {
+    inline std::vector<std::string> &split(const std::string &s, char delim, std::vector<std::string> &elems) {
         std::stringstream ss(s);
         std::string item;
         while (std::getline(ss, item, delim)) {
@@ -45,13 +46,13 @@ namespace Crawler_Util{
         return elems;
     }
 
-    std::vector<std::string> split(const std::string &s, char delim) {
+    inline std::vector<std::string> split(const std::string &s, char delim) {
         std::vector<std::string> elems;
         split(s, delim, elems);
         return elems;
     }
 
-    string cpr_header_to_string(cpr::Header h) {
+    inline string cpr_header_to_string(cpr::Header h) {
         string s;
 
         for( auto i=h.begin(); i != h.end(); ++i )
@@ -75,3 +76,4 @@ namespace Crawler_Util{
 
 
 }
+#endif //CRAWLERPLUSPLUS_GIT_UTIL_H

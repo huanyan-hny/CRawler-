@@ -1,4 +1,3 @@
-#pragma once
 #include <string>
 #include <vector>
 #include <functional>
@@ -8,28 +7,23 @@
 #include <mutex>
 #include <cpr/cpr.h>
 #include <curl/curl.h>
-#include "../include/CRawlerPlusPlus/Task.h"
+#include "../Task.h"
 #include "../include/CRawlerPlusPlus/Network.h"
 #include "../include/CRawlerPlusPlus/Downloader.h"
 
 
+
 namespace Crawler
 {
-    struct Session {
-        Session() {};
-        Session(const Session &obj) {
-            // copy constructor
-            cookiejar = obj.cookiejar;
-        }
-    };
-
-    typedef std::map<string,shared_ptr<Session>> SessionMap;
+    Session::Session() {};
+    Session::Session(const Session &obj) {
+        // copy constructor
+        cookiejar = obj.cookiejar;
+    }
 
 
     namespace Downloader {
-        class Boostasio_Downloader {
-        public:
-            shared_ptr<Response> get(Task &tsk) {
+            shared_ptr<Response> Boostasio_Downloader::get(Task &tsk) {
                 Request req = Request(tsk.get_method(), tsk.get_url(), tsk.get_content());
                 string request_str = req.render_request();
                 try {
@@ -106,14 +100,10 @@ namespace Crawler
                     return nullptr;
                 }
             }
-        };
+        }; // namespace Downloader
 
 
-        class Curl_Downloader {
-        private:
-            SessionMap sm;
-        public:
-            shared_ptr<Response> post(Task &tsk) {
+        shared_ptr<Response> Downloader::Curl_Downloader::post(Task &tsk) {
 
                 shared_ptr<Session> s;
 
@@ -208,7 +198,8 @@ namespace Crawler
                 return res;
 
             }
-            shared_ptr<Response> get(Task &tsk) {
+
+            shared_ptr<Response> Downloader::Curl_Downloader::get(Task &tsk) {
 
                 shared_ptr<Session> s;
 
@@ -294,7 +285,6 @@ namespace Crawler
                 }
                 return res;
             }
-        };
-    }
+        }; // namespace crawler
 
-}
+

@@ -1,4 +1,3 @@
-#pragma once
 #include <string>
 #include <vector>
 #include <unordered_map>
@@ -12,26 +11,14 @@
 #include <algorithm>
 #include <cpr/cpr.h>
 #include "include/CRawlerPlusPlus/Util.h"
+#include "include/CRawlerPlusPlus/Network.h"
 
 using namespace std;
 using boost::asio::ip::tcp;
 
 namespace Crawler
 {
-	typedef string request_payload;
-	typedef string response_payload;
-    typedef std::map<std::string,std::string> CookieJar;
 
-	enum class Request_method {
-//		GET, HEAD, POST, PUT, DELETE, CONNECT, OPTIONS, TRACE
-		GET, POST
-	};
-
-    enum class Request_content {
-        FILE,
-        HTML,
-		JSON,
-    };
 
 	void extract_cookie_to_cookiejar(CookieJar& ckj, string header) {
 		vector<string> headerLines = Crawler_Util::split(header, '\n');
@@ -56,190 +43,145 @@ namespace Crawler
                 buffers_end(sb.data())};
     };
 
-	using Header = cpr::Header;
-
-    class Authentication
-    {
-    private:
-        string username;
-        string password;
-    public:
-        Authentication(): username(""), password("") {}
-        Authentication(string _username,
+    Authentication::Authentication(): username(""), password("") {}
+	Authentication::Authentication(string _username,
                        string _password):
                 username(_username), password(_password){}
 
-		string get_username() {
+	string Authentication::get_username() {
 			return username;
-		}
+	}
 
-		string get_password() {
+	string Authentication::get_password() {
 			return password;
-		}
+	}
 
-		void set_username(string _username) {
+	void Authentication::set_username(string _username) {
 			username = _username;
-		}
-		void set_password(string _password) {
+	}
+
+	void Authentication::set_password(string _password) {
 			password = _password;
-		}
-        bool operator==(const Authentication& b) {
+	}
+
+	bool Authentication::operator==(const Authentication& b) {
             return username == b.username && password == b.password;
-        }
+	}
 
-        bool operator!=(const Authentication& b) {
+	bool Authentication::operator!=(const Authentication& b) {
             return !(*this == b);
-        }
+	}
 
 
 
-    };
+	void Request::set_option(string _tag) {
+				this->tag = _tag;
+	}
 
-	class Response
-	{
-	public:
-        unsigned int status_code;
-        string header;
-		response_payload asio_response;
-		string tag;
-		vector<char> content;
-	};
+	void Request::set_option(Header header) {
+		this->header = header;
+	}
 
+	void Request::set_option(Authentication auth){
+		this->auth = auth;
+	}
 
-	class Request
-	{
-	private:
+	void Request::set_option(bool trust_env) {
+		this->trust_env = trust_env;
+	}
 
+	Request_method Request::str(string method_str) {
+		string str_to_match = Crawler_Util::to_lower(method_str);
+		if (str_to_match == "get")
+			return Request_method::GET;
+		else if (str_to_match == "post")
+			return Request_method::POST;
+		else
+			return Request_method::GET;
+	}
 
-	public:
-		void set_option(string _tag) {
-			this->tag = _tag;
+	Request& Request::put_string(string key,string value) {
+		bundle[key] = value;
+		return *this;
+	}
+
+	Request& Request::ignore_iteration_limit(bool value) {
+		ignore_iterating_limit = value;
+		return *this;
+	}
+
+	string Request::get_request_method(){
+		string method_str;
+		switch (request_method) {
+			case Request_method::GET:
+				method_str = "GET";
+				break;
+			case Request_method::POST: method_str = "POST";
 		}
+		return method_str;
+	}
 
-		void set_option(Header header) {
-			this->header = header;
-		}
-
-		void set_option(Authentication auth){
-			this->auth = auth;
-		}
-
-		void set_option(bool trust_env) {
-			this->trust_env = trust_env;
-		}
-		Request_method request_method;
-		string url;
-		string resource;
-        unordered_map<string,string> bundle;
-		Header header;
-		Authentication auth;
-		bool isFile;
-        bool ignore_iterating_limit;
-		CookieJar cookiejar = {};
-		bool trust_env = true;
-		string tag;
-		Request_method str(string method_str) {
-			string str_to_match = Crawler_Util::to_lower(method_str);
-			if (str_to_match == "get")
-				return Request_method::GET;
-			else if (str_to_match == "post")
-				return Request_method::POST;
-			else
-				return Request_method::GET;
-		}
-        Request& put_string(string key,string value) {
-            bundle[key] = value;
-            return *this;
-        }
-        Request& ignore_iteration_limit(bool value) {
-            ignore_iterating_limit = value;
-            return *this;
-        }
-		string get_request_method(){
-			string method_str;
-			switch (request_method) {
-				case Request_method::GET:
-					method_str = "GET";
-					break;
-				case Request_method::POST: method_str = "POST";
+	string Request::render_request(){
+		string request_str;
+		request_str = get_request_method() + " " +  resource + " HTTP/1.0\r\n";
+		request_str += "Host: " + url + "\r\n";
+		request_str += "Accept: */*\r\n";
+		request_str += "Connection: close\r\n";
+		if (cookiejar.size()) {
+			request_str += "Cookie:";
+			for (auto const & s: cookiejar){
+				request_str += s.first + "=" + s.second + ";";
 			}
-			return method_str;
 		}
-
-		string render_request(){
-			string request_str;
-			request_str = get_request_method() + " " +  resource + " HTTP/1.0\r\n";
-			request_str += "Host: " + url + "\r\n";
-			request_str += "Accept: */*\r\n";
-			request_str += "Connection: close\r\n";
-			if (cookiejar.size()) {
-				request_str += "Cookie:";
-				for (auto const & s: cookiejar){
-					request_str += s.first + "=" + s.second + ";";
-				}
-			}
-			request_str += "\r\n";
-			cout << request_str;
-			return request_str;
-		}
-		template <typename... Tail>
-		Request(string _request_method, string _url, Request_content content, Tail... tail): request_method(str(_request_method))
-		{
-			if (content == Request_content::FILE)
-				isFile = true;
-			else
-				isFile = false;
-			int found = _url.find("/");
-			url = _url.substr(0,found);
-			resource = _url.substr(found);
-			ignore_iterating_limit = false;
-//            cout << url + resource << endl;
-			Crawler_Util::set_option(*this, tail...);
-		}
-
-        Request(string _request_method, string _url, Request_content content, string _tag = ""): request_method(str(_request_method))
-        {
-            if (content == Request_content::FILE)
-                isFile = true;
-            else
-                isFile = false;
-            tag = _tag;
-            int found = _url.find("/");
-            url = _url.substr(0,found);
-            resource = _url.substr(found);
-            ignore_iterating_limit = false;
-//            cout << url + resource << endl;
-        }
+		request_str += "\r\n";
+		cout << request_str;
+		return request_str;
+	}
 
 
-		Request(Request_method _request_method, string _url, Request_content content, string _tag = ""): request_method(_request_method)
-		{
-			if (content == Request_content::FILE)
-				isFile = true;
-			else
-				isFile = false;
-			tag = _tag;
-			int found = _url.find("/");
-			url = _url.substr(0,found);
-			resource = _url.substr(found);
-			ignore_iterating_limit = false;
-//            cout << url + resource << endl;
-		}
+	Request::Request(string _request_method, string _url, Request_content content, string _tag): request_method(str(_request_method))
+	{
+		if (content == Request_content::FILE)
+			isFile = true;
+		else
+			isFile = false;
+		tag = _tag;
+		int found = _url.find("/");
+		url = _url.substr(0,found);
+		resource = _url.substr(found);
+		ignore_iterating_limit = false;
+	//            cout << url + resource << endl;
+	}
 
-        CookieJar& get_cookie_jar() {
-            return cookiejar;
-        }
 
-        string get_url(){
-            return url + resource;
-        }
-        void set_cookie_jar(const CookieJar& c) {
-            cookiejar = c;
-        }
-	};
+	Request::Request(Request_method _request_method, string _url, Request_content content, string _tag): request_method(_request_method)
+	{
+		if (content == Request_content::FILE)
+			isFile = true;
+		else
+			isFile = false;
+		tag = _tag;
+		int found = _url.find("/");
+		url = _url.substr(0,found);
+		resource = _url.substr(found);
+		ignore_iterating_limit = false;
+	//            cout << url + resource << endl;
+	}
+
+	CookieJar& Request::get_cookie_jar() {
+		return cookiejar;
+	}
+
+	string Request::get_url(){
+		return url + resource;
+	}
+
+	void Request::set_cookie_jar(const CookieJar& c) {
+				cookiejar = c;
+	}
 
 
 
 
 
-}
+}; //namespace crawler

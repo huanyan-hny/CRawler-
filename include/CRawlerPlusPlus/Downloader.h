@@ -17,8 +17,6 @@ using boost::asio::ip::tcp;
 
 namespace Crawler {
 
-    typedef std::map<string,shared_ptr<Session>> SessionMap;
-
     struct Session {
         cpr::Session session;
         cpr::Cookies cookiejar;
@@ -26,6 +24,8 @@ namespace Crawler {
         Session();
         Session(const Session &obj);
     };
+
+    typedef std::map<string,shared_ptr<Session>> SessionMap;
 
 	namespace Downloader {
         class Boostasio_Downloader {
