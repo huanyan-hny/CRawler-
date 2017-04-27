@@ -17,6 +17,7 @@ set(SOURCE_FILES main.cpp
         src/Network.cpp
         src/Downloader.cpp
         src/Parser.cpp
+        src/Json.cpp
         )
 add_executable(CRawlerPlusPlus ${SOURCE_FILES})
 
