@@ -3,8 +3,8 @@
 #include <ostream>
 #include <string>
 #include <fstream>
-#include "../include/CRawlerPlusPlus/Downloader.h"
-#include "../include/CRawlerPlusPlus/Network.h"
+#include "../Downloader.h"
+#include "include/CRawlerPlusPlus/Network.h"
 #include <cpr/cpr.h>
 
 using boost::asio::ip::tcp;

@@ -8,7 +8,7 @@
 #include "Network.h"
 #include <cpr/cpr.h>
 #include <curl/curl.h>
-#include "../../Task.h"
+#include "Task.h"
 #include <mutex>
 
 using namespace std;
@@ -27,19 +27,19 @@ namespace Crawler {
 
     typedef std::map<string,shared_ptr<Session>> SessionMap;
 
-	namespace Downloader {
+    namespace Downloader {
         class Boostasio_Downloader {
-            public:
-                shared_ptr<Response> get(Task &tsk);
+        public:
+            shared_ptr<Response> get(Task &tsk);
         };
 
 
         class Curl_Downloader {
-            private:
-                SessionMap sm;
-            public:
-                shared_ptr<Response> post(Task &tsk);
-                shared_ptr<Response> get(Task &tsk);
+        private:
+            SessionMap sm;
+        public:
+            shared_ptr<Response> post(Task &tsk);
+            shared_ptr<Response> get(Task &tsk);
         };
     }
 

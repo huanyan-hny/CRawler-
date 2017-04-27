@@ -6,17 +6,14 @@
 #define CRAWLERPLUSPLUS_GIT_UTIL_H
 
 
-
 #include <string>
 #include <algorithm>
-//#include "Network.h"
 
 #define FWD(...) ::std::forward<decltype(__VA_ARGS__)>(__VA_ARGS__)
 
 using namespace std;
 
 namespace Crawler_Util{
-
     inline string to_lower(string s){
         std::transform(s.begin(), s.end(), s.begin(), ::tolower);
         return s;
@@ -76,4 +73,5 @@ namespace Crawler_Util{
 
 
 }
+
 #endif //CRAWLERPLUSPLUS_GIT_UTIL_H
