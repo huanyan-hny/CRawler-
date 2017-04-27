@@ -27,7 +27,7 @@ int main()
     auto pipeline = make_shared<Crawler::GrubhubItemPipeline>();
 	Crawler::Engine<Crawler::Generic_Scheduler> e(spider,pipeline);
     e.set_max_threads(5);
-    e.set_maximum_layer(2);
+    e.set_maximum_layer(10);
     e.start();
     return 0;
 
