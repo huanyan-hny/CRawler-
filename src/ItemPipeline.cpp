@@ -19,36 +19,51 @@ namespace Crawler
         }
 
     }
-    void ItemPipeline::simple_write(shared_ptr<Item> item)
+    bool ItemPipeline::simple_write(string path,shared_ptr<Item> item)
     {
+        if (path[path.size()-1] != '/')
+            path += '/';
         boost::filesystem::path tmp = boost::filesystem::unique_path();
-        string filename =  tmp.string() + ".txt";
+        string filename =  path + tmp.string() + ".txt";
         cout << "writing on " << filename << endl;
         ofstream ofs;
         ofs.open(filename, std::ofstream::out);
-        ofs << item->to_string();
-        ofs.close();
-//			item->to_string();
+        if (ofs.is_open()) {
+            ofs << item->to_string();
+            ofs.close();
+            return true;
+        }
+        return false;
     }
-    void ItemPipeline::simple_file_write(shared_ptr<Item> item)
+
+    bool ItemPipeline::simple_file_write(string path,shared_ptr<Item> item)
     {
+        if (path[path.size()-1] != '/')
+            path += '/';
         for (pair<string, File> file_item : item->data)
         {
             boost::filesystem::path tmp = boost::filesystem::unique_path();
-            string filename = "./output/" + tmp.string() + file_item.second.extension;
+            string filename = path + tmp.string() + file_item.second.extension;
             ofstream ofs;
             ofs.open(filename, ios::binary | std::ofstream::out);
+            if (!ofs.is_open()) return false;
             ofs.write(file_item.second.data.data(), file_item.second.data.size());
             ofs.close();
-
         }
+        return true;
     }
-    void ItemPipeline::simple_file_write(const File& file,string filename) {
+    bool ItemPipeline::simple_file_write(string path,const File& file,string filename) {
         ofstream ofs;
-        string path = "./output/" + string_to_filename(filename) + "." + file.extension;
+        if (path[path.size()-1] != '/')
+            path += '/';
+        path = path + string_to_filename(filename) + "." + file.extension;
         ofs.open(path,ios::binary | ios::out);
-        ofs.write((char *)&(file.data[0]),file.data.size());
-        ofs.close();
+        if (ofs.is_open()) {
+            ofs.write(&(file.data[0]), file.data.size());
+            ofs.close();
+            return true;
+        }
+        return false;
     }
     string ItemPipeline::string_to_filename(string input)
     {

@@ -35,7 +35,7 @@ namespace Crawler
                 outputer << item->to_csv() << endl;
             }
             else if (item->type == "poster")
-                simple_file_write(item->data["poster"],item->name);
+                simple_file_write("./output",item->data["poster"],item->name);
 		}
 
 	};

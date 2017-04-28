@@ -1,5 +1,4 @@
 #pragma once
-//http://stackoverflow.com/questions/15752659/thread-pooling-in-c11
 #include "Generic_Scheduler.h"
 #include "Downloader.h"
 #include "Spider.h"
@@ -11,28 +10,39 @@
 #include <future>
 using namespace std;
 
-//http://stackoverflow.com/questions/26577317/implementation-of-then-for-stdfuture-results-in-compilation-error
-
 namespace Crawler
 {
+    ///
+    /// The engine class\n
+    /// The routine of an engine is to get tasks from scheduler,\n
+    /// use downloader to download pages (or files),\n
+    /// then feed then to a user-defined parser to analyze and produce items,\n
+    /// at last give data to item pipeline to store them.\n
+    /// The engine is a multithreaded one.
+    ///
 //	template <Scheduler T>
     template <typename T>
 	class Engine
 	{
 	public:
+        ///
+        /// \param _spider a shared pointer of any dereived class from Spider,
+        /// \param _item_pipeline a shared pointer of any dereived class from ItemPipeline
+        /// The constructor
+        ///
 		Engine(shared_ptr<Spider> _spider, shared_ptr<ItemPipeline> _item_pipeline );
-		void set_max_threads(int t);
-		void set_iterations(int l);
-		void start();
-		void start_async(std::function<void(void)> callback);
+		void set_max_threads(int t); ///< set the number of threads working at the same time
+		void set_iterations(int l); ///< set the number of crawling iterations
+		void start(); ///< start the engine synchronously, will not return until finished
+		void start_async(std::function<void(void)> callback); ///< start the engine asynchronously, after finishing, the callback will be invoked
 	private:
-		shared_ptr<Spider> spider;
-		unique_ptr<Generic_Scheduler> scheduler;
-		shared_ptr<ItemPipeline> item_pipeline;
-		Downloader::Curl_Downloader cd;
-		std::atomic_int active_threads{0};
+		shared_ptr<Spider> spider; ///< the user-defined spider instance
+		unique_ptr<Generic_Scheduler> scheduler;///< the pre-defined scheduler
+		shared_ptr<ItemPipeline> item_pipeline; ///< the user-defined item pipeline
+		Downloader::Curl_Downloader cd;///< the downloader implemented by curl
+		std::atomic_int active_threads{0}; ///< the counter of active threads
 		mutex future_lk;
-		vector<future<void>> pending_futures;
+		vector<future<void>> pending_futures; ///< used to collect std::feature, otherwise it will be blocked
 		int max_threads;
         inline void store_future(future<void>&& f);
 	};
