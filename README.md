@@ -28,7 +28,7 @@ $ git clone https://github.com/huanyan-hny/CRawlerPlusPlus.git
 
 $ cd CRawlerPlusPlus
 $ mkdir build && cd build 
-$ cmake .. & make
+$ cmake .. && make
 ```
 
 ## Tutorial
