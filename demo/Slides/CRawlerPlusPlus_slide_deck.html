@@ -8,7 +8,6 @@
     <style type="text/css" media="screen">
       @import url(https://fonts.googleapis.com/css?family=Droid+Serif);
       @import url(https://fonts.googleapis.com/css?family=Yanone+Kaffeesatz);
-
       body { font-family: 'Droid Serif'; }
       h1, h2, h3 {
         font-family: 'Yanone Kaffeesatz';
@@ -33,7 +32,6 @@
         color: #f3f3f3;
         line-height: 0.8em;
       }
-
       pre {
         border-left: 0.4em solid #d7d7d7;
         padding: 1em !important;
@@ -428,15 +426,7 @@ Cons:
 
 ## Callback Implementation -- Motivation
 
-When we get some HTTP requests to parse, they may came from different sources as well as have different type. 
-
---
-
-The user may design multiple handler to deal with different kinds of HTTP responses. 
-
---
-
-Therefore, we don’t want to associate the handler with some specific functions, but rather, we want each task to "know" which function to be called once it is done.
+We want each task to "know" which function to be called once it is done.
 
 --
 
@@ -455,21 +445,21 @@ typedef function<void(shared_ptr<Task>,
 					  function<void(Item&)>)> spider_callback;
 ```
 
-The callback function need to be defined in the class which derives from the Spider class. It must have the same parameters like the example showed above. 
+Declare call functions in child class
 
 --
 
-The address of a callback function could be retrieved by &ClassName::Callback. 
+Refer the address of the function by &ClassName::Callback. 
 
 --
 
-.red[Issue with this]: However, the function pointer of the callback couldn’t be converted to the spider_callback because as the member function pointer inside a class, it could only be converted to the std::function, which must contain a parameter with type ClassName& or ClassName*. Whenever the std::function is invoked, an instance of the class has to be passed in.
+.red[Issue with this]: The function pointer of member function have to be called with an instance of the class as a param
 
 ---
 
 ## Callback Implementation -- Solution
 
-In order to make that function address conform to our spider_callback, we need a helper function:
+Convert that function pointer to the std::function we need:
 
 ```cpp
 template<class T> spider_callback callback(void (T::* callback)
@@ -502,15 +492,16 @@ Task("www.google.com",callback(&IMDBSpider::parse))
 
 # Yield-like behaviour -- Problem definition
 
-In the handler, we suppose user to produce new tasks and new items.
+Expect user to return the result in the Spider handler
 
 --
 
-At first, we require the user to return a vector, which includes all of the data we are going to pass back to the engine, but it tends to be unfriendly to the user:
+Ask to return a vector at first
 
 ```cpp
 // This code needed in every add task parser!
 
+vector<shared_ptr<Task>> inital_tasks()
 {
   vector<shared_ptr<Task>> ret;
   ret.push_back(make_shared<Task>(Task("www.google.com",callback(&IMDBSpider::parse)));
@@ -518,17 +509,35 @@ At first, we require the user to return a vector, which includes all of the data
 }
 ```
 
+--
+
+Downside：
+
+Not a friendly API
+
+Can't control the "push_back" process
+
+
 ---
 
 # Yield-like behaviour -- Solution
 
-In the Spider class, we wrapped the user’s functions, passed two callback functions to user, which are implemented in the lambda function. 
+Let the user call callback functions to add items
 
 --
 
-Basically, it pushes the item user returned into the pre-defined vector. Every time the user calls the callback, one item will be pushed into the vector. After the user handled all of the objects, the helper function returned the vector back to the engine:
+Inspired by python yield return mechanism
 
-Inspired by the Python yield return mechanism, we gave the user callback function to achieve yield-like behavior:
+```cpp
+
+// In user-defined spider, what we expect!
+void initial_tasks(function<void(Task&)> add_task)
+{
+	add_task(Task("www.google.com",callback(&IMDBSpider::parse));
+}
+```
+
+--
 
 ```cpp
 // Defined in Spider base case; Engine calls this
@@ -536,13 +545,14 @@ vector<shared_ptr<Task>> Spider::initial_tasks_wrapper()
 {
     vector<shared_ptr<Task>> ret;
     initial_tasks([&](Task& req){
+		if (req->get_url == "foo.com" ) {
+			cout << "this url is forbidden to access" <<endl;
+			return;
+		}
         ret.push_back(make_shared<Task>(req));
     } );
     return ret;
 }
-
-// In user-defined spider, do the following will be enough!
-add_task(Task("www.google.com",callback(&IMDBSpider::parse));
 ```
 ---
 
@@ -567,16 +577,55 @@ std::async(std::launch::async, [&](shared_ptr<Task> task)
 ```
 ---
 
-# Async IO -- How to handle feature
+# Async IO -- Problem 
 
-- The std::async will return a std::future. The std::future will wait itself to finish in its destructor. 
-- If we lose the reference: the statements below the std::async call will be blocked until the std::async finished, even if you don’t care the return value of the std::feature.
+- The std::future will wait itself to finish in its destructor. 
+- The program blocks!
 
 --
 
-- **Solution**: To make the std::async “asynchronous”, we have to use a vector to store all of the std::future generated by the std::async and clean them periodically. 
+- **Solution**: Keep the reference of std::future
 
 - Maybe a better way? detach()?
+
+---
+
+# Async IO -- Problem with smart pointer
+
+```cpp
+
+//......
+void foo() 
+{
+	std::shared_ptr<int> a(make_shared<int>(1));
+
+	f = std::async(std::launch::async, [&]()
+	{
+		*a = 2;	//Dangling pointer
+	});
+	//a is destroyed here
+}
+```
+
+--
+
+**Solution**: Pass the smart pointer into the std::async 
+
+```cpp
+
+//......
+void foo() 
+{
+	std::shared_ptr<int> a(make_shared<int>(1));
+
+	f = std::async(std::launch::async, [&](std::shared_ptr<int> aa)
+	{
+		*aa = 2;	//No problem here!
+	},a);
+}
+```
+
+
 
 ---
 
@@ -690,4 +739,3 @@ class: center, middle, inverse
     </script>
   </body>
 </html>
-
