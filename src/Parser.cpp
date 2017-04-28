@@ -124,8 +124,9 @@ namespace Crawler {
             if (!match)
                 continue;
             if (isLast) {
-                if (end_r - start_l + 1 >= 0)
+                if (end_r - start_l + 1 >= 0){
                     res.push_back(s.substr(start_l, end_r - start_l + 2));
+                }
             } else {
                 if (end_l - start_r - 1 >= 0)
                     res.push_back(s.substr(start_r + 1, end_l - start_r - 1));

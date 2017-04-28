@@ -14,6 +14,9 @@
 using namespace std;
 
 namespace Crawler_Util{
+    /// This function makes the string all lower case
+    /// \param s
+    /// \return
     inline string to_lower(string s){
         std::transform(s.begin(), s.end(), s.begin(), ::tolower);
         return s;
@@ -34,6 +37,11 @@ namespace Crawler_Util{
         set_option(c, FWD(ts)...);
     }
 
+    /// This function splits string based on delim and store it in elems.
+    /// \param s
+    /// \param delim
+    /// \param elems
+    /// \return the reference to elems
     inline std::vector<std::string> &split(const std::string &s, char delim, std::vector<std::string> &elems) {
         std::stringstream ss(s);
         std::string item;
@@ -43,12 +51,19 @@ namespace Crawler_Util{
         return elems;
     }
 
+    /// This function is a wrapper to above.
+    /// \param s
+    /// \param delim
+    /// \return
     inline std::vector<std::string> split(const std::string &s, char delim) {
         std::vector<std::string> elems;
         split(s, delim, elems);
         return elems;
     }
 
+    /// This function renders a cpr header to a string.
+    /// \param h
+    /// \return
     inline string cpr_header_to_string(cpr::Header h) {
         string s;
 
@@ -60,6 +75,12 @@ namespace Crawler_Util{
         return s;
     }
 
+    /// This function write size amount of data to a vector.
+    /// \param contents
+    /// \param size
+    /// \param nmemb
+    /// \param userp
+    /// \return
     static size_t write_to_vec(void *contents, size_t size, size_t nmemb, void *userp)
     {
         size_t realsize = size * nmemb;

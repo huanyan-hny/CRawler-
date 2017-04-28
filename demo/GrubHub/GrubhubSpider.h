@@ -13,6 +13,7 @@ namespace Crawler
     class GrubhubSpider: public Spider
     {
     public:
+
         void initial_tasks(function<void(Task&)> add_task)
         {
             string token = "d5fa9b5b-ab01-48af-9f73-8c3462f52a15";

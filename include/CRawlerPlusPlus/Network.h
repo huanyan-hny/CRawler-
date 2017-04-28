@@ -40,46 +40,68 @@ namespace Crawler
 
     std::string make_string(boost::asio::streambuf& sb);
 
+    /// Authentication class is the object that contains username/password info used when sending
+    /// auth in request
     class Authentication {
 
     private:
 
-        string username;
+        string username; ///< username, or auth type in OAUTH2.0 (such as "BEARER")
 
-        string password;
+        string password; ///< password, or token in OAUTH2.0
 
     public:
 
         Authentication();
 
+        ///
+        /// \param _username a string for username
+        /// \param _password a string for password
         Authentication(string _username,
                        string _password);
 
+        ///
+        /// \return return private member username
         string get_username();
 
+        ///
+        /// \return return private member password
         string get_password();
 
+        ///
+        /// \param _username set private member username
         void set_username(string _username);
 
+        ///
+        /// \param _username set private member password
         void set_password(string _password);
 
+        /// We overload equality check for user to easily compare to authentication.
+        /// \param b A constant reference to another authentication
+        /// \return boolean (true or false)
         bool operator==(const Authentication& b);
 
+        /// We overload inequality check for user to easily compare to authentication.
+        /// \param b A constant reference to another authentication
+        /// \return boolean (true or false)
         bool operator!=(const Authentication& b);
 
     };
 
+    /// Response class is what being returned from Downloader.get or Downloader.post.
     class Response
     {
     public:
-        unsigned int status_code;
-        string header;
-        response_payload asio_response;
-        string tag;
-        vector<char> content;
+
+        unsigned int status_code; ///< status_code 401/200/404, etc.
+        string header; ///< the header string
+        response_payload asio_response; ///< the content of HTML/JSON.
+        string tag; ///< the tag information got from Task/Request (if any). Deprecated.
+        vector<char> content; ///< content vector char for files like image/pdf.
     };
 
 
+    /// Request class is deprecated. Now use Task for everywhere!
     class Request
     {
     private:
@@ -126,6 +148,12 @@ namespace Crawler
 
         string render_request();
 
+        ///
+        /// \tparam Tail Variadic template that would take anything.
+        /// \param _request_method GET/POST
+        /// \param _url url string
+        /// \param content FILE/JSON/HTML
+        /// \param tail other setting
         template <typename... Tail>
         Request(string _request_method, string _url, Request_content content, Tail... tail): request_method(str(_request_method))
         {
