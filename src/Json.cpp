@@ -1,164 +1,169 @@
-#include "Json.h"
-
-Json::Json(){};
-    
-Json::Json(unordered_map<string, Json> m) {
-    type = "Json";
-    mapValue = m;
-}
-    
-Json::Json(string s) {
-    type = "string";
-    stringvalue = s;
-}
-    
-Json::Json(int i) {
-    type = "int";
-    intValue = i;
-}
-    
-Json::Json(double d) {
-    type = "double";
-    doubleValue = d;
-}
-    
-Json::Json(bool b) {
-    type = "bool";
-    boolValue = b;
-}
-    
-Json::Json(JsonValue j) {
-    type = "null";
-    jValue = null;
-}
-    
-Json::Json(vector<Json> l) {
-    type = "list";
-    listValue = l;
-}
-
-Json Json::operator[](string key) {
-    return mapValue[key];
-}
-
-Json Json::operator[](int index) {
-    return listValue[index];
-}
-    
-size_t Json::size() {
-    if (type=="Json")
-        return mapValue.size();
-    else if (type=="list")
-        return listValue.size();
-    return 0;
-}
-    
-string Json::toString() {
-    if (type=="string") {
-        return "\"" + stringvalue + "\"";
+#include "JSON.h"
+namespace Crawler{
+    JSON::JSON(){};
+        
+    JSON::JSON(unordered_map<string, JSON> m) {
+        type = "JSON";
+        mapValue = m;
     }
-    else if (type=="int")
-        return to_string(intValue);
-    else if (type=="double")
-        return to_string(doubleValue);
-    else if (type=="bool")
-        return to_string(boolValue);
-    else if (type=="null")
-        return "null";
-    else if (type=="list") {
-        string res = "[";
-        for (int i=0;i<listValue.size();i++) {
-            res += listValue[i].toString();
-            if (i<listValue.size()-1)
-                res += ",";
-        }
-        res += "]";
-        return res;
-    } else {
-        string res = "{";
-        size_t counter = mapValue.size();
-        for (auto it = mapValue.begin();it!=mapValue.end();it++) {
-            res += "\"" + it->first + "\":";
-            res += it->second.toString();
-            counter--;
-            if (counter>0)
-                res += ",";
-        }
-        res += "}";
-        return res;
+        
+    JSON::JSON(string s) {
+        type = "string";
+        stringvalue = s;
     }
-}
-    
-string Json::getString() {
-    return stringvalue;
-}
-    
-int Json::getInt() {
-    return intValue;
-}
-    
-double Json::getDouble() {
-    return doubleValue;
-}
-    
-bool Json::getBool() {
-    return boolValue;
-}
-    
-vector<Json> Json::getList() {
-    return listValue;
-}
-    
-JsonValue Json::getNull() {
-    return null;
-}
-    
-string Json::getType() {
-    return type;
-}
-    
-vector<Json> Json::find_by_key(string key) {
-    vector<Json> res;
-    vector<Json> more;
-    if (type=="Json") {
-        for (auto element:mapValue) {
-            string k = element.first;
-            Json j = element.second;
-            if (k==key) {
-                res.push_back(j);
+        
+    JSON::JSON(int i) {
+        type = "int";
+        intValue = i;
+    }
+        
+    JSON::JSON(double d) {
+        type = "double";
+        doubleValue = d;
+    }
+        
+    JSON::JSON(bool b) {
+        type = "bool";
+        boolValue = b;
+    }
+        
+    JSON::JSON(JSONValue j) {
+        type = "null";
+        jValue = null;
+    }
+        
+    JSON::JSON(vector<JSON> l) {
+        type = "list";
+        listValue = l;
+    }
+
+    JSON JSON::operator[](string key) {
+        return mapValue[key];
+    }
+
+    JSON JSON::operator[](int index) {
+        return listValue[index];
+    }
+        
+    size_t JSON::size() {
+        if (type=="JSON")
+            return mapValue.size();
+        else if (type=="list")
+            return listValue.size();
+        return 0;
+    }
+        
+    string JSON::toString() {
+        if (type=="string") {
+            return "\"" + stringvalue + "\"";
+        }
+        else if (type=="int")
+            return to_string(intValue);
+        else if (type=="double")
+            return to_string(doubleValue);
+        else if (type=="bool")
+            return to_string(boolValue);
+        else if (type=="null")
+            return "null";
+        else if (type=="list") {
+            string res = "[";
+            for (int i=0;i<listValue.size();i++) {
+                res += listValue[i].toString();
+                if (i<listValue.size()-1)
+                    res += ",";
             }
-            more = j.find_by_key(key);
-            res.insert(res.end(),more.begin(),more.end());
-        }
-    } else if (type=="list") {
-        for (auto element:listValue) {
-            more = element.find_by_key(key);
-            res.insert(res.end(),more.begin(),more.end());
+            res += "]";
+            return res;
+        } else {
+            string res = "{";
+            size_t counter = mapValue.size();
+            for (auto it = mapValue.begin();it!=mapValue.end();it++) {
+                res += "\"" + it->first + "\":";
+                res += it->second.toString();
+                counter--;
+                if (counter>0)
+                    res += ",";
+            }
+            res += "}";
+            return res;
         }
     }
-    return res;
-}
+        
+    string JSON::getString() {
+        return stringvalue;
+    }
+        
+    int JSON::getInt() {
+        return intValue;
+    }
+        
+    double JSON::getDouble() {
+        return doubleValue;
+    }
+        
+    bool JSON::getBool() {
+        return boolValue;
+    }
+        
+    vector<JSON> JSON::getList() {
+        return listValue;
+    }
+        
+    JSONValue JSON::getNull() {
+        return null;
+    }
+        
+    string JSON::getType() {
+        return type;
+    }
 
-template<> string Json::get<string>() {
-    return stringvalue;
-}
+    unordered_map<string, JSON> JSON::getJSON() {
+        return mapValue;
+    }
+        
+    vector<JSON> JSON::find_by_key(string key) {
+        vector<JSON> res;
+        vector<JSON> more;
+        if (type=="JSON") {
+            for (auto element:mapValue) {
+                string k = element.first;
+                JSON j = element.second;
+                if (k==key) {
+                    res.push_back(j);
+                }
+                more = j.find_by_key(key);
+                res.insert(res.end(),more.begin(),more.end());
+            }
+        } else if (type=="list") {
+            for (auto element:listValue) {
+                more = element.find_by_key(key);
+                res.insert(res.end(),more.begin(),more.end());
+            }
+        }
+        return res;
+    }
 
-template<> int Json::get<int>() {
-    return intValue;
-}
+    template<> string JSON::get<string>() {
+        return stringvalue;
+    }
 
-template<> double Json::get<double>() {
-    return doubleValue;
-}
+    template<> int JSON::get<int>() {
+        return intValue;
+    }
 
-template<> bool Json::get<bool>() {
-    return boolValue;
-}
+    template<> double JSON::get<double>() {
+        return doubleValue;
+    }
 
-template<> vector<Json> Json::get<vector<Json>>() {
-    return listValue;
-}
+    template<> bool JSON::get<bool>() {
+        return boolValue;
+    }
 
-template<> JsonValue Json::get<JsonValue>() {
-    return jValue;
+    template<> vector<JSON> JSON::get<vector<JSON>>() {
+        return listValue;
+    }
+
+    template<> JSONValue JSON::get<JSONValue>() {
+        return jValue;
+    }
 }
