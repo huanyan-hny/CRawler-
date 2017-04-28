@@ -531,8 +531,6 @@ Cons:
 
 We want each task to "know" which function to be called once it is done.
 
---
-
 Essentially, we want a callback mechanism!
 
 ---
@@ -550,11 +548,7 @@ typedef function<void(shared_ptr<Task>,
 
 Declare call functions in child class
 
---
-
 Refer the address of the function by &ClassName::Callback.
-
---
 
 .red[Issue with this]: The function pointer of member function have to be called with an instance of the class as a param
 
@@ -601,8 +595,6 @@ Task("www.google.com",callback(&IMDBSpider::parse))
 
 Problem Definition: Expect user to return the result in the Spider handler
 
---
-
 Ask to return a vector at first
 
 ```cpp
@@ -616,8 +608,6 @@ vector<shared_ptr<Task>> inital_tasks()
   return ret;
 }
 ```
-
---
 
 Downside：
 
@@ -639,8 +629,6 @@ void initial_tasks(function<void(Task&)> add_task) {
 	add_task(Task("www.google.com",callback(&IMDBSpider::parse)); }
 ```
 
---
-
 ```cpp
 // Defined in Spider base case; Engine calls this
 vector<shared_ptr<Task>> Spider::initial_tasks_wrapper() {
@@ -659,7 +647,7 @@ vector<shared_ptr<Task>> Spider::initial_tasks_wrapper() {
 # Async IO -- Usage of std::async
 
 ```cpp
-
+shared_ptr<Task> task = scheduler->get_request();
 atomic_fetch_add(&active_threads, 1);
 std::async(std::launch::async, [&](shared_ptr<Task> task)
 {
@@ -683,8 +671,6 @@ std::async(std::launch::async, [&](shared_ptr<Task> task)
 - The std::future will wait itself to finish in its destructor.
 - The program blocks!
 
---
-
 - **Solution**: Keep the reference of std::future
 
 - Maybe a better way? detach()?
@@ -702,6 +688,7 @@ void foo()
 
 	f = std::async(std::launch::async, [&]()
 	{
+		sleep(1000);
 		*a = 2;	//Dangling pointer
 	});
 	//a is destroyed here
@@ -722,6 +709,7 @@ void foo()
 
 	f = std::async(std::launch::async, [&](std::shared_ptr<int> aa)
 	{
+		sleep(1000);
 		*aa = 2;	//No problem here!
 	},a);
 }
