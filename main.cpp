@@ -27,6 +27,7 @@ void run_IMDB(){
 }
 
 void run_GrubHub(){
+    cout << "here";
     auto spider = make_shared<Crawler::GrubhubSpider>();
     auto pipeline = make_shared<Crawler::GrubhubItemPipeline>();
     Crawler::Engine<Crawler::Generic_Scheduler> e(spider,pipeline);

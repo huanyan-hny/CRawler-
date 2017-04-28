@@ -16,7 +16,7 @@ namespace Crawler
 
         void initial_tasks(function<void(Task&)> add_task)
         {
-            string token = "c324f4c0-d6de-46ad-beed-9ba28cd9e0a8";
+            string token = "c0f461d3-dd63-4464-a11e-b832a8830989";
             add_task(Task("https://api-gtm.grubhub.com/restaurants/search?orderMethod=delivery&locationMode=DELIVERY&facetSet=umamiV2&pageSize=20&hideHateos=true&location=POINT(-73.96379853%2040.79992675)&facet=open_now%3Atrue&variationId=dishReorderConversionScore&sortSetId=umamiV2&sponsoredSize=3&countOmittingTimes=true",
                           callback(&GrubhubSpider::parse_restaurant),Auth_type::OAUTH2,Authentication("Bearer",token)).
                     put_string("auth",token));

@@ -43,7 +43,7 @@ namespace Crawler
             string rating = HTML(content).find_one("span","ratingValue").getInnerHTML();
             string rating_count = HTML(content).find_one("span","ratingCount").getInnerHTML();
 
-            cout<<"movie_poster_link " << movie_poster_link<<endl;
+//            cout<<"movie_poster_link " << movie_poster_link<<endl;
             if (movie_name != "") {
                 i.type = "movie";
                 i["movie_name"] = movie_name;

@@ -8,7 +8,10 @@
     <style type="text/css" media="screen">
       @import url(https://fonts.googleapis.com/css?family=Droid+Serif);
       @import url(https://fonts.googleapis.com/css?family=Yanone+Kaffeesatz);
-      body { font-family: 'Droid Serif'; }
+      body { 
+      	font-family: 'Droid Serif';
+       font-size: 1.6em;
+      }
       h1, h2, h3 {
         font-family: 'Yanone Kaffeesatz';
         font-weight: 400;
@@ -101,7 +104,7 @@ But you are even too lazy to look at Seamless. You'd rather just pick a restaura
 
 --
 
-What to do now? 
+What to do now?
 
 --
 Write a .red[*crawler*] to scrape everything down from Seamless for you!
@@ -188,7 +191,7 @@ Easy? Good!
 
 # How is this related to web crawler
 
-Definition : 
+Definition :
 "_A Web crawler, sometimes called a spider, is an Internet bot that systematically browses the World Wide Web, typically for the purpose of Web indexing (web spidering)._" (Wikipedia)
 
 --
@@ -248,10 +251,33 @@ Source: https://www.quora.com/How-do-I-make-a-simple-web-crawler-using-C++
 - To showcase that Modern C++ is not as bad as people thought in handling network / string parsing / crawler job
 
 ---
+
+# C++ Features Used
+
+- Classes
+  - Modularity, Inheritance, Polymorphism
+- Variadic template
+  - User-friendly constructor (achieved with forwarding)
+- Multithreading, std::async and std::future, std::mutex, std::atomic
+  - A multi-threaded, async IO solution, engine and scheduler
+- Operator overloading for intuitive access
+- RAII (Resource acquisition is initialization)
+  - Mutex, smart pointer (unique and shared), etc.
+  - Cleanup is as easy and intuitive as letting an object fall out of scope
+- Function objects and lambdas
+  - To implement callback
+- Various STL containers, algorithms and utilities
+  - Include but not limited to: unordered map, ordered map, vector, string
+- Concept
+  - We worked on that but not to use it in our final delivery
+- Move semantics
+  - Use std::move to avoid copy
+---
+
 layout: false
 class: center, middle, inverse
 
-# Architecture
+# Architecture and Feature
 
 ---
 template: default
@@ -265,8 +291,8 @@ layout: true
 
 - Engine
 	- The multithreaded **brain** that connects all the components and manages them.
-- Scheduler 
-	- Schedule the task, manage depth, duplication, etc. 
+- Scheduler
+	- Schedule the task, manage depth, duplication, etc.
 - Item & Item Pipeline
 	- Item is the (well-structured) data to be stored
 	- It can be image, json, txt, key-value pairs... anything
@@ -278,11 +304,46 @@ layout: true
 	- Do the parsing of the HTTP response (either HTML or JSON)
 	- Get items to be stored
 	- Get future tasks to be performed
-	- Powered by in-house parsing library (very handy!) 
+	- Powered by in-house parsing library (very handy!)
 ---
 
 <a href="url"><img src="img/architecture.png" align="middle" height="550"></a>
 
+---
+
+# Feature
+- Full fledged support to the majority of HTTP request functionality
+  - GET request
+  - POST request
+  - URL encoded parameters
+  - URL encoded POST values
+  - Session
+  - Cookie
+  - Basic Authentication
+  - OAuth 2.0
+  - Custom Header
+  - Multiple return type support (HTML, file or JSON)
+  - HTTPS (with openssl)
+- 100% user-friendly design
+  - Flexible constructors with optional parameters that are **truly optional** (the sequence doesn't even matter!)
+  - Painless callback function
+  - Use function objects to achieve yield-like behavior
+
+---
+# Feature (cont'd)
+- Multithreaded solution with asynchronous I/O
+  - But write the spider as if it was single-threaded -- we handle everything for you!
+- Two downloader backends support
+  - Boost ASIO downloader for simple, basic GET requests, but guarantees more low-level control;
+  - Curl downloader for advanced usage, including POST requests, authentication, session, etc.
+- In-house Utility functions
+  - Wrote a HTML and JSON parser: Easily navigate through both HTML and JSON files without the need of installing any third-party libraries!
+  - Wrote simple_write, to_csv, etc. for data persistence.
+- Simple, expressive yet extensive
+  - Provided modular, pluggable scheduler, item pipeline and spider. Powerful default ones but you can also write your own!
+- Basic anti-(anti-crawler) functionality
+  - An intelligent scheduler that will match domain info and exclude duplicates automatically
+  - Supports setting header for user-agent to 'trick' the server
 ---
 layout: false
 class: center, middle, inverse
@@ -302,25 +363,25 @@ layout: true
 ```cpp
 Task::Task(string _url,
            spider_callback _callback,
-           Request_method _method, 
+           Request_method _method,
            Request_content _content ,
-           Session_type _session_type, 
+           Session_type _session_type,
            string _session_name ,
            Auth_type _auth_type ,
-           Authentication _auth, 
-           Form _form , 
+           Authentication _auth,
+           Form _form ,
            Header _header);
-                    
-auto T = Task("http://google.com", 
-				nullptr, 
-				Request_method::GET, 
-				Request_content::HTML, 
-				Session_type::AUTO, 
-				"", 
-				Auth_type::None, 
-				Authentication("",""), 
-				Form {}, 
-				Header {}); 
+
+auto T = Task("http://google.com",
+				nullptr,
+				Request_method::GET,
+				Request_content::HTML,
+				Session_type::AUTO,
+				"",
+				Auth_type::None,
+				Authentication("",""),
+				Form {},
+				Header {});
 // Long and tedious ... many things are the same in most of the time!
 ```
 ---
@@ -333,12 +394,12 @@ auto T = Task("http://google.com", nullptr); // Yeah everything else is optional
 // What if I want to specify the session name?
 
 auto T2 = Task("http://google.com",
-					nullptr, 
-					Request_method::GET, 
-					Request_content::HTML, 
+					nullptr,
+					Request_method::GET,
+					Request_content::HTML,
 					Session_type::NEW,
-					"new_session"); 
-/* Shoot -- I just want to specify the session name, 
+					"new_session");
+/* Shoot -- I just want to specify the session name,
  * but will have to write all the previous default value explicitly! */
 ```
 ---
@@ -347,22 +408,22 @@ auto T2 = Task("http://google.com",
 ```cpp
 Task::Task(string _url,
            spider_callback _callback,
-           Request_method _method, 
+           Request_method _method,
            Request_content _content ,
-           Session_type _session_type, 
+           Session_type _session_type,
            string _session_name ,
            Auth_type _auth_type ,
-           Authentication _auth, 
-           Form _form , 
+           Authentication _auth,
+           Form _form ,
            Header _header);
-           
+
 auto T2 = Task("http://google.com", nullptr);
 T2.set_session_type(Session_type::LAST);
 
-auto T3 = Task("http://google.com", 
-				  nullptr, 
-				  Request_content::FILE, 
-				  Request_method::POST, 
+auto T3 = Task("http://google.com",
+				  nullptr,
+				  Request_content::FILE,
+				  Request_method::POST,
 				  Session_type::LAST); // error
 
 /* error -- but why does it even matter??
@@ -401,17 +462,17 @@ void set_option(C& c, T&& t) {
     c.set_option(FWD(t));
 }
 
-auto T3 = Task("http://google.com", 
-				  nullptr, 
-				  Request_content::FILE, 
-				  Request_method::POST, 
+auto T3 = Task("http://google.com",
+				  nullptr,
+				  Request_content::FILE,
+				  Request_method::POST,
 				  Session_type::LAST); // Now it works!
 ```
 ---
 
 ## Truly optional constructor - Pros and Cons
 
-Pros: 
+Pros:
 
 - User does not need to call set_option explicitly
 - the ordering does not matter anymore!
@@ -436,7 +497,7 @@ Essentially, we want a callback mechanism!
 
 ## Callback Implementation -- typedef and issue
 
-The callback mechanism is implemented by the std::function. We defined our callback as:  
+The callback mechanism is implemented by the std::function. We defined our callback as:
 
 ```cpp
 typedef function<void(shared_ptr<Task>,
@@ -449,7 +510,7 @@ Declare call functions in child class
 
 --
 
-Refer the address of the function by &ClassName::Callback. 
+Refer the address of the function by &ClassName::Callback.
 
 --
 
@@ -465,9 +526,9 @@ Convert that function pointer to the std::function we need:
 template<class T> spider_callback callback(void (T::* callback)
   (shared_ptr<Task>,shared_ptr<Response>,function<void(Task&)>,function<void(Item&)>))
 {
-    return std::bind(callback, 
-    					 (T*)this, 
-    					 std::placeholders::_1,  
+    return std::bind(callback,
+    					 (T*)this,
+    					 std::placeholders::_1,
     					 std::placeholders::_2,
     					 std::placeholders::_3,
     					 std::placeholders::_4);
@@ -477,9 +538,9 @@ template<class T> spider_callback callback(void (T::* callback)
 Now we can define callback handler as below:
 
 ```cpp
-void parse(shared_ptr<Task> task, 
+void parse(shared_ptr<Task> task,
 			shared_ptr<Response> res,
-			function<void(Task&)> add_task, 
+			function<void(Task&)> add_task,
 			function<void(Item&)> produce_item)
 ```
 
@@ -577,9 +638,9 @@ std::async(std::launch::async, [&](shared_ptr<Task> task)
 ```
 ---
 
-# Async IO -- Problem 
+# Async IO -- Problem
 
-- The std::future will wait itself to finish in its destructor. 
+- The std::future will wait itself to finish in its destructor.
 - The program blocks!
 
 --
@@ -595,7 +656,7 @@ std::async(std::launch::async, [&](shared_ptr<Task> task)
 ```cpp
 
 //......
-void foo() 
+void foo()
 {
 	std::shared_ptr<int> a(make_shared<int>(1));
 
@@ -609,12 +670,12 @@ void foo()
 
 --
 
-**Solution**: Pass the smart pointer into the std::async 
+**Solution**: Pass the smart pointer into the std::async
 
 ```cpp
 
 //......
-void foo() 
+void foo()
 {
 	std::shared_ptr<int> a(make_shared<int>(1));
 
@@ -648,7 +709,7 @@ How should we model that?
 
 class HTML {
     public:
-        vector<HTML> extract(string path, bool isLast); 
+        vector<HTML> extract(string path, bool isLast);
         vector<HTML> find_by_xpath(string xpath);
         vector<HTML> find_all(string tag, string selectors);
         ...
@@ -718,6 +779,35 @@ class: center, middle, inverse
 
 # Demo Time!
 
+
+---
+# Measurement
+
+Compared with Python
+
+For downloading IMDB with max_depth = 3, Python scrapy = 3s; CRawlerPlusPlus = 8s.
+
+--
+
+Not doing great -- why?
+
+--
+
+Possible more tests:
+
+- Larger scale
+- Different types of data
+- Environment with bad connection
+
+---
+
+# Future plan
+
+- .big[Better logging system]
+- .big[HTTP redirect and proxy]
+- .big[Domain allow/disallow (with regex support)]
+- .big[Error handling]
+- .big[Timing]
 
 ---
 layout: false
