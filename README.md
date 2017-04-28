@@ -19,7 +19,6 @@ Library dependency:
 - boost
 - pthread
 - crp (https://github.com/whoshuu/cpr.git)
-- 
 
 ## Installation
 ```bash
