@@ -35,7 +35,7 @@ using namespace Crawler;
     class TestItemPipeline : public ItemPipeline {
     public:
         void process_item(shared_ptr<Item> item) {
-            simple_file_write(item->data["img"], item->name);
+            simple_file_write("./output",item->data["img"], item->name);
         }
 
     };

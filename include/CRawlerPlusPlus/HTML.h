@@ -16,6 +16,8 @@ namespace Crawler {
         vector<HTML> extract(string path, bool isLast); ///<Extract the content of the given tag path tag_name[attributes], e.g. div[class="header"]
         vector<HTML> find_by_xpath(string xpath); ///< Extract the content of the given xpath, e.g. /div/span[class="avatar"]/img
         vector<HTML> find_all(string tag, string selectors); ///< Find all content of the given tag (e.g div) with attribute selectors (e.g class="header")
+        HTML find_one(string tag, string selectors);
+        string to_string();
         HTML(){}
         HTML(string s){src=s;}
     private:

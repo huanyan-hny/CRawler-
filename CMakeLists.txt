@@ -3,15 +3,15 @@ project(CRawlerPlusPlus_git)
 #set (CMAKE_CXX_FLAGS "--std=c++1z -fconcepts ${CMAKE_CXX_FLAGS}")
 set (CMAKE_CXX_FLAGS "--std=c++1z ${CMAKE_CXX_FLAGS}")
 #set(SOURCE_FILES test/test_network.cpp)
-set(SOURCE_FILES main.cpp src/Downloader.cpp
+set(SOURCE_FILES test/test_engine.cpp src/Downloader.cpp
         src/Network.cpp
-        src/Parser.cpp
         src/Spider.cpp
         src/Json.cpp
         src/Task.cpp
         src/Generic_Scheduler.cpp
         src/Item.cpp
-        src/ItemPipeline.cpp)
+        src/ItemPipeline.cpp
+        src/HTML.cpp)
 add_executable(CRawlerPlusPlus ${SOURCE_FILES})
 
 find_package(Boost 1.63.0 COMPONENTS system filesystem REQUIRED)

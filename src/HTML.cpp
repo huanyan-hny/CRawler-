@@ -17,6 +17,18 @@ namespace Crawler {
         return res;
     }
 
+    string HTML::to_string() {
+        return src;
+    }
+
+    HTML HTML::find_one(string tag, string selectors){
+        auto v = find_all(tag,  selectors);
+        if (v.size()>0)
+            return v[0];
+        else
+            return HTML("");
+    }
+
     string HTML::getInnerHTML () {
         int start,end;
         start = 0;

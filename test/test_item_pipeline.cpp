@@ -47,7 +47,7 @@ void test_item_write_str()
 {
     class my_ip : public ItemPipeline {
         void process_item(shared_ptr<Item> item) {
-            simple_write(item);
+            simple_write("./",item);
         }
     };
 
