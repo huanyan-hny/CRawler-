@@ -19,7 +19,6 @@ Library dependency:
 - boost
 - pthread
 - crp (https://github.com/whoshuu/cpr.git)
-- 
 
 ## Installation
 ```bash
@@ -29,7 +28,7 @@ $ git clone https://github.com/huanyan-hny/CRawlerPlusPlus.git
 
 $ cd CRawlerPlusPlus
 $ mkdir build && cd build 
-$ cmake .. & make
+$ cmake .. && make
 ```
 
 ## Tutorial
